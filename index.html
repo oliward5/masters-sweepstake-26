@@ -183,52 +183,62 @@ function parseScoreStr(s){
 
 function extractRounds(c){
   const r=[null,null,null,null];
-  // Primary: linescores
   if(Array.isArray(c.linescores)){
     c.linescores.forEach((ls,i)=>{
       if(i<4){
         let v=safeNum(ls);
         if(v==null&&typeof ls==='object'){ v=safeNum(ls.value); if(v==null) v=safeNum(ls.displayValue); }
-        r[i]=v;
+        // ESPN puts holes-thru (1-18) into linescores for the
+        // in-progress round. Real stroke totals are always > 50.
+        // Only keep values that are plausible stroke totals.
+        if(v!==null && v>50) r[i]=v;
       }
     });
   }
-  // Fallback: statistics array
   if(r.every(x=>x==null)&&Array.isArray(c.statistics)){
     const names=['round1','round2','round3','round4'];
     c.statistics.forEach(st=>{
       const idx=names.indexOf(st.name);
-      if(idx!==-1) r[idx]=safeNum(st.value??st.displayValue);
+      if(idx!==-1){
+        const v=safeNum(st.value??st.displayValue);
+        if(v!==null && v>50) r[idx]=v;
+      }
     });
   }
   return r;
 }
 
 function extractScoreToPar(c){
-  // Try c.score (number or object)
-  let s=safeNum(c.score);
-  if(s!==null) return s;
-
-  // Try c.score.displayValue as "+3"/"-2"/"E"
+  // PRIORITY 1: Parse display string "+3"/"-2"/"E" (works mid-round)
   if(c.score&&typeof c.score==='object'){
-    s=parseScoreStr(c.score.displayValue);
+    let s=parseScoreStr(c.score.displayValue);
+    if(s!==null) return s;
+  }
+  if(typeof c.score==='string'){
+    let s=parseScoreStr(c.score);
     if(s!==null) return s;
   }
 
-  // Try statistics
+  // PRIORITY 2: Look in statistics array
   if(Array.isArray(c.statistics)){
     for(const st of c.statistics){
       if(st.name==='scoreToPar'||st.name==='relativeScore'){
-        s=safeNum(st.value??st.displayValue);
+        let s=parseScoreStr(st.displayValue);
         if(s!==null) return s;
+        s=safeNum(st.value);
+        if(s!==null && s>-30 && s<30) return s;
       }
     }
   }
 
-  // Compute from round scores
+  // PRIORITY 3: Compute from completed round stroke totals
   const rounds=extractRounds(c);
   const done=rounds.filter(x=>x!==null);
   if(done.length>0) return done.reduce((a,b)=>a+b,0)-(PAR*done.length);
+
+  // PRIORITY 4: If c.score is a small number (plausible to-par), use it
+  const raw=safeNum(c.score);
+  if(raw!==null && raw>-30 && raw<30) return raw;
 
   return null;
 }
@@ -443,9 +453,11 @@ function updateDebug(){
     const sample=cs.slice(0,3).map(c=>({
       name:c.athlete?.displayName,
       score:c.score,
+      scoreType:typeof c.score,
       linescores:c.linescores,
       status:c.status,
-      sortOrder:c.sortOrder
+      sortOrder:c.sortOrder,
+      statistics:c.statistics?.slice?.(0,5)
     }));
     box.textContent='Event: '+(ev?.name||'?')+'\nStatus: '+JSON.stringify(ev?.status?.type)+'\nPlayers: '+cs.length+'\n\nSample (first 3):\n'+JSON.stringify(sample,null,2);
   }catch(e){box.textContent='Debug error: '+e.message;}
