@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masters 2026 Sweepstake</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--masters-green:#006747;--masters-dark:#004d35;--masters-gold:#c8a951;--masters-cream:#f5f0e8;--bg:#faf8f4;--text:#1a1a1a;--text-muted:#6b6b6b;--card-bg:#fff;--card-border:rgba(0,103,71,.08);--cut-red:#b8362e;--positive:#b8362e;--negative:#006747;--font-display:'Playfair Display',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{background:var(--masters-green);color:#fff;padding:2rem 1.5rem 1.5rem;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 0%,rgba(200,169,81,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(0,0,0,.2) 0%,transparent 50%)}
+.header-content{position:relative;z-index:1;max-width:800px;margin:0 auto}
+.header h1{font-family:var(--font-display);font-weight:900;font-size:clamp(1.8rem,5vw,2.8rem);letter-spacing:.02em;line-height:1.1}
+.header h1 span{color:var(--masters-gold)}
+.header-sub{font-size:.85rem;color:rgba(255,255,255,.7);margin-top:.5rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+.live-dot{display:inline-block;width:8px;height:8px;background:#4ade80;border-radius:50%;margin-right:6px;animation:pulse 2s ease-in-out infinite;vertical-align:middle}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tabs{display:flex;justify-content:center;background:var(--masters-dark);border-bottom:2px solid var(--masters-gold)}
+.tab{padding:.7rem 1.2rem;font-family:var(--font-body);font-weight:600;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;transition:all .2s;position:relative}
+.tab.active{color:var(--masters-gold)}
+.tab.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--masters-gold)}
+.main{max-width:860px;margin:0 auto;padding:1rem 1rem 4rem}
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;font-size:.78rem;color:var(--text-muted);border-bottom:1px solid var(--card-border);margin-bottom:1rem}
+.status-bar .round-info{font-weight:600;color:var(--masters-green)}
+.sweep-entry{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;margin-bottom:.6rem;overflow:hidden}
+.sweep-entry:first-child{border:2px solid var(--masters-gold);box-shadow:0 2px 12px rgba(200,169,81,.15)}
+.sweep-entry:first-child .sweep-rank{background:var(--masters-gold);color:var(--masters-dark)}
+.sweep-row{display:grid;grid-template-columns:36px 1fr auto;align-items:center;padding:.75rem 1rem;gap:.75rem;cursor:pointer}
+.sweep-rank{width:28px;height:28px;border-radius:50%;background:var(--masters-green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
+.sweep-name{font-weight:700;font-size:.95rem}
+.sweep-score{font-family:var(--font-display);font-weight:700;font-size:1.3rem}
+.score-over{color:var(--positive)}.score-under{color:var(--negative)}.score-even{color:var(--text)}
+.sweep-picks{display:none;padding:0 1rem .75rem;border-top:1px solid var(--card-border)}
+.sweep-entry.expanded .sweep-picks{display:block;padding-top:.6rem}
+.pick-row{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;padding:.35rem 0;font-size:.82rem;align-items:center}
+.pick-row+.pick-row{border-top:1px solid rgba(0,0,0,.04)}
+.pick-name{font-weight:600}
+.pick-tier{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:3px;background:rgba(0,103,71,.08);color:var(--masters-green)}
+.pick-score{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.pick-mc{color:var(--cut-red);font-size:.7rem;font-weight:600}
+.pick-thru{font-size:.72rem;color:var(--text-muted)}
+.golfer-table{width:100%;border-collapse:collapse}
+.golfer-table th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:.6rem .5rem;text-align:left;border-bottom:2px solid var(--masters-green);position:sticky;top:0;background:var(--bg);z-index:2}
+.golfer-table th:nth-child(n+3),.golfer-table td:nth-child(n+3){text-align:center}
+.golfer-table td{padding:.55rem .5rem;font-size:.82rem;border-bottom:1px solid var(--card-border);font-variant-numeric:tabular-nums}
+.golfer-table tr.picked td{background:rgba(0,103,71,.04)}
+.golfer-table tr.mc td{color:var(--text-muted)}
+.golfer-pos{font-weight:700;color:var(--masters-green);width:36px}
+.golfer-name-cell{font-weight:600;white-space:nowrap}
+.golfer-total{font-weight:700}
+.rules-box{background:var(--masters-cream);border-radius:10px;padding:1.25rem;margin-top:.5rem;font-size:.82rem;line-height:1.6}
+.rules-box h3{font-family:var(--font-display);font-weight:700;color:var(--masters-green);margin-bottom:.5rem}
+.rules-box ul{padding-left:1.2rem}
+.rules-box li{margin-bottom:.25rem}
+.debug-box{background:#1a1a1a;color:#a3e635;border-radius:8px;padding:1rem;margin-top:1rem;font-family:monospace;font-size:.72rem;max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all;display:none}
+.debug-toggle{font-size:.72rem;color:var(--text-muted);background:none;border:1px solid var(--card-border);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:1rem}
+.loading{text-align:center;padding:4rem 1rem;color:var(--text-muted)}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--card-border);border-top-color:var(--masters-green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{text-align:center;padding:2rem;color:var(--cut-red);font-weight:600}
+@media(max-width:500px){.golfer-table .hm{display:none}.sweep-row{padding:.6rem .75rem}.main{padding:.75rem .75rem 3rem}.tab{padding:.7rem .8rem;font-size:.68rem}}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-content">
+  <h1>The <span>Masters</span> Sweepstake</h1>
+  <div class="header-sub"><span class="live-dot" id="liveDot" style="display:none"></span><span id="statusText">Loading...</span></div>
+</div></div>
+<div class="tabs">
+  <button class="tab active" data-tab="sweep">Sweepstake</button>
+  <button class="tab" data-tab="leaderboard">Full Leaderboard</button>
+  <button class="tab" data-tab="rules">Rules</button>
+</div>
+<div class="main">
+  <div id="sweepTab">
+    <div class="status-bar"><span class="round-info" id="roundInfo">—</span><span id="lastUpdated">—</span></div>
+    <div id="sweepBoard"><div class="loading"><div class="loading-spinner"></div>Fetching scores from Augusta...</div></div>
+  </div>
+  <div id="leaderboardTab" style="display:none">
+    <div class="status-bar"><span class="round-info" id="roundInfo2">—</span><span>Your picks highlighted in green</span></div>
+    <div id="golferBoard"><div class="loading"><div class="loading-spinner"></div>Loading leaderboard...</div></div>
+  </div>
+  <div id="rulesTab" style="display:none">
+    <div class="rules-box">
+      <h3>How It Works</h3>
+      <ul>
+        <li><strong>11 entries</strong>, each picks <strong>4 golfers</strong>.</li>
+        <li><strong>1 pick</strong> from OWGR 1–5, <strong>2 picks</strong> from OWGR 6–25, <strong>1 pick</strong> from OWGR 26+.</li>
+        <li>Your score = the <strong>cumulative score-to-par</strong> of your 4 golfers. Lowest wins.</li>
+        <li>If a golfer <strong>misses the cut</strong>, their final score = R2 score-to-par <strong>+ 3 penalty shots</strong>.</li>
+        <li>WD (withdrew) and DQ (disqualified) players treated the same as a missed cut.</li>
+        <li>Scores update automatically every 2 minutes.</li>
+      </ul>
+    </div>
+    <button class="debug-toggle" onclick="document.getElementById('debugBox').style.display=document.getElementById('debugBox').style.display==='none'?'block':'none'">Show raw ESPN data (debug)</button>
+    <div class="debug-box" id="debugBox"></div>
+  </div>
+</div>
+<script>
+// ============================================================
+//  SWEEPSTAKE CONFIG — EDIT YOUR ENTRIES HERE
+//
+//  ⚠️ Golfer names MUST match ESPN exactly.
+//  Load the app → click "Full Leaderboard" tab → copy names.
+// ============================================================
+const SWEEPSTAKE_ENTRIES = [
+  { name:"Player 1",  picks:["Scottie Scheffler","Collin Morikawa","Tommy Fleetwood","Min Woo Lee"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 2",  picks:["Xander Schauffele","Brooks Koepka","Shane Lowry","Kurt Kitayama"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 3",  picks:["Rory McIlroy","Justin Thomas","Sam Burns","Jason Day"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 4",  picks:["Jon Rahm","Patrick Cantlay","Matt Fitzpatrick","Cameron Young"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 5",  picks:["Ludvig Aberg","Tony Finau","Sungjae Im","Keegan Bradley"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 6",  picks:["Bryson DeChambeau","Hideki Matsuyama","Russell Henley","Patrick Reed"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 7",  picks:["Collin Morikawa","Jordan Spieth","Justin Rose","Sahith Theegala"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 8",  picks:["Scottie Scheffler","Viktor Hovland","Wyndham Clark","Corey Conners"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 9",  picks:["Xander Schauffele","Tommy Fleetwood","Robert MacIntyre","Tyrrell Hatton"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 10", picks:["Rory McIlroy","Shane Lowry","Cameron Smith","Adam Scott"], tiers:["1-5","6-25","6-25","26+"] },
+  { name:"Player 11", picks:["Ludvig Aberg","Collin Morikawa","Joaquin Niemann","Gary Woodland"], tiers:["1-5","6-25","6-25","26+"] },
+];
+
+const PAR = 72;
+
+// ============================================================
+//  APP CODE — no edits needed below
+// ============================================================
+let golferData = {}, lastRawData = null;
+
+// Tabs
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const t = btn.dataset.tab;
+    document.getElementById('sweepTab').style.display = t==='sweep'?'':'none';
+    document.getElementById('leaderboardTab').style.display = t==='leaderboard'?'':'none';
+    document.getElementById('rulesTab').style.display = t==='rules'?'':'none';
+  });
+});
+
+function toggleEntry(el){ el.closest('.sweep-entry').classList.toggle('expanded'); }
+
+// --- Format helpers ---
+function fmtScore(n){
+  if(n==null||isNaN(n)) return '—';
+  if(n===0) return 'E';
+  return n>0?'+'+n:''+n;
+}
+function scoreClass(n){
+  if(n==null||isNaN(n)) return 'score-even';
+  return n>0?'score-over':n<0?'score-under':'score-even';
+}
+
+// ============================================================
+//  ROBUST ESPN GOLF PARSER
+//  ESPN's golf JSON structure shifts depending on:
+//    - Round in progress vs between rounds vs complete
+//    - Pre-cut vs post-cut
+//    - Active vs CUT/WD/DQ players
+//  This parser tries every known field location and falls
+//  back gracefully. A debug panel (Rules tab) shows raw data.
+// ============================================================
+
+function safeNum(v){
+  if(v==null||v===''||v==='--'||v==='—') return null;
+  if(typeof v==='object'){ let n=safeNum(v.value); return n!==null?n:safeNum(v.displayValue); }
+  const n=parseFloat(v);
+  return isNaN(n)?null:n;
+}
+
+function parseScoreStr(s){
+  if(!s||typeof s!=='string') return null;
+  s=s.trim();
+  if(s==='E'||s.toLowerCase()==='even') return 0;
+  const n=parseInt(s,10);
+  return isNaN(n)?null:n;
+}
+
+function extractRounds(c){
+  const r=[null,null,null,null];
+  // Primary: linescores
+  if(Array.isArray(c.linescores)){
+    c.linescores.forEach((ls,i)=>{
+      if(i<4){
+        let v=safeNum(ls);
+        if(v==null&&typeof ls==='object'){ v=safeNum(ls.value); if(v==null) v=safeNum(ls.displayValue); }
+        r[i]=v;
+      }
+    });
+  }
+  // Fallback: statistics array
+  if(r.every(x=>x==null)&&Array.isArray(c.statistics)){
+    const names=['round1','round2','round3','round4'];
+    c.statistics.forEach(st=>{
+      const idx=names.indexOf(st.name);
+      if(idx!==-1) r[idx]=safeNum(st.value??st.displayValue);
+    });
+  }
+  return r;
+}
+
+function extractScoreToPar(c){
+  // Try c.score (number or object)
+  let s=safeNum(c.score);
+  if(s!==null) return s;
+
+  // Try c.score.displayValue as "+3"/"-2"/"E"
+  if(c.score&&typeof c.score==='object'){
+    s=parseScoreStr(c.score.displayValue);
+    if(s!==null) return s;
+  }
+
+  // Try statistics
+  if(Array.isArray(c.statistics)){
+    for(const st of c.statistics){
+      if(st.name==='scoreToPar'||st.name==='relativeScore'){
+        s=safeNum(st.value??st.displayValue);
+        if(s!==null) return s;
+      }
+    }
+  }
+
+  // Compute from round scores
+  const rounds=extractRounds(c);
+  const done=rounds.filter(x=>x!==null);
+  if(done.length>0) return done.reduce((a,b)=>a+b,0)-(PAR*done.length);
+
+  return null;
+}
+
+function extractStatus(c){
+  const out={isCut:false,isWD:false,isDQ:false,isActive:true,thru:'',currentRound:0};
+  const st=c.status||{};
+  const tp=st.type||{};
+  const nm=(tp.name||'').toLowerCase();
+  const desc=(tp.description||'').toLowerCase();
+  const state=(tp.state||'').toLowerCase();
+  const dv=(st.displayValue||'').toUpperCase();
+  const period=safeNum(st.period)||0;
+
+  // Detect out-of-tournament states
+  out.isCut = nm==='cut'||desc.includes('cut')||dv==='CUT'||dv.includes('MC');
+  out.isWD  = nm==='wd'||nm==='withdrawn'||desc.includes('withdraw')||dv==='WD';
+  out.isDQ  = nm==='dq'||nm==='disqualified'||desc.includes('disqualif')||dv==='DQ';
+  out.isActive = !out.isCut&&!out.isWD&&!out.isDQ;
+  out.currentRound = period;
+
+  // Thru (holes in current round)
+  if(!out.isActive){
+    out.thru = out.isCut?'MC':out.isWD?'WD':'DQ';
+  } else {
+    // Try status.thru first (ESPN sometimes uses this for golf)
+    let thru = st.thru ?? null;
+    // If thru is null, check displayValue
+    if(thru==null||thru==='') thru = st.displayValue ?? '';
+    const ts = String(thru).trim().toUpperCase();
+
+    if(ts==='F'||ts==='18') out.thru='F';
+    else if(/^\d+$/.test(ts)&&parseInt(ts)<=18) out.thru=ts;
+    else if(ts===''||ts==='—'||ts==='--'){
+      // No thru data — player may not have started, or round is between
+      // Check if state indicates in-progress
+      if(state==='in') out.thru='—';
+      else out.thru='F';  // Default: assume finished if no thru data and not "in"
+    } else {
+      out.thru=ts||'—';
+    }
+  }
+
+  return out;
+}
+
+function extractPosition(c){
+  // Position can live in many places
+  return c.status?.position?.displayName
+      || (c.status?.position?.id ? String(c.status.position.id) : null)
+      || (c.sortOrder ? String(c.sortOrder) : null)
+      || '—';
+}
+
+// ============================================================
+//  FETCH & PROCESS
+// ============================================================
+async function fetchScores(){
+  try{
+    const res = await fetch('/api/scores');
+    if(!res.ok) throw new Error('API returned '+res.status);
+    const data = await res.json();
+    lastRawData = data;
+
+    // Find Masters event (or first event)
+    let ev = null;
+    if(data.events){
+      ev = data.events.find(e=>(e.name||'').toLowerCase().includes('masters')) || data.events[0];
+    }
+    if(!ev) throw new Error('No tournament data. ESPN may not be serving the leaderboard right now.');
+
+    // Tournament-level status
+    const evSt = ev.status?.type || {};
+    const roundDisplay = evSt.detail||evSt.shortDetail||evSt.description||'In Progress';
+    document.getElementById('roundInfo').textContent = roundDisplay;
+    document.getElementById('roundInfo2').textContent = roundDisplay;
+    document.getElementById('statusText').textContent = roundDisplay;
+
+    const state = (evSt.state||'').toLowerCase();
+    document.getElementById('liveDot').style.display = (state==='in'||state==='pre')?'inline-block':'none';
+
+    // Find competitors (ESPN nests them differently sometimes)
+    let comps = ev.competitions?.[0]?.competitors || ev.competitors || [];
+    if(comps.length===0) throw new Error('No player data in response.');
+
+    const allPicks = new Set();
+    SWEEPSTAKE_ENTRIES.forEach(e=>e.picks.forEach(p=>allPicks.add(p.toLowerCase())));
+
+    golferData = {};
+    const golferList = [];
+
+    comps.forEach(c=>{
+      const name = c.athlete?.displayName || c.athlete?.fullName || c.athlete?.shortName || 'Unknown';
+      const pos = extractPosition(c);
+      const scoreToPar = extractScoreToPar(c);
+      const rounds = extractRounds(c);
+      const ps = extractStatus(c);
+      const roundsPlayed = rounds.filter(r=>r!==null).length;
+
+      // Sweepstake score
+      let sweepScore = scoreToPar;
+      const isOut = ps.isCut||ps.isWD||ps.isDQ;
+
+      if(isOut){
+        if(rounds[0]!==null && rounds[1]!==null){
+          // Best case: we have actual R1+R2 strokes
+          sweepScore = (rounds[0]+rounds[1] - PAR*2) + 3;
+        } else if(scoreToPar!==null){
+          // Fallback: use whatever ESPN reports as their score, add penalty
+          sweepScore = scoreToPar + 3;
+        } else {
+          sweepScore = 20; // worst case fallback
+        }
+      }
+
+      const rec = {
+        name, position:pos, scoreToPar, sweepstakeScoreToPar:sweepScore,
+        rounds, roundsPlayed,
+        thru: ps.thru,
+        isCut:ps.isCut, isWD:ps.isWD, isDQ:ps.isDQ, isOut,
+        picked: allPicks.has(name.toLowerCase())
+      };
+
+      golferData[name.toLowerCase()] = rec;
+      golferList.push(rec);
+    });
+
+    // Sort: active players by score, then out players
+    golferList.sort((a,b)=>{
+      if(a.isOut&&!b.isOut) return 1;
+      if(!a.isOut&&b.isOut) return -1;
+      if(a.scoreToPar==null) return 1;
+      if(b.scoreToPar==null) return -1;
+      return a.scoreToPar-b.scoreToPar;
+    });
+
+    renderSweepstake();
+    renderLeaderboard(golferList);
+    document.getElementById('lastUpdated').textContent = 'Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    updateDebug();
+  } catch(err){
+    console.error(err);
+    document.getElementById('sweepBoard').innerHTML = '<div class="error-msg">Could not load scores. Will retry in 2 min.<br><small>'+err.message+'</small></div>';
+    updateDebug();
+  }
+}
+
+// --- RENDER SWEEPSTAKE ---
+function renderSweepstake(){
+  const results = SWEEPSTAKE_ENTRIES.map(entry=>{
+    let total=0, found=0;
+    const picks = entry.picks.map((pn,i)=>{
+      const g = golferData[pn.toLowerCase()];
+      if(!g) return {name:pn,tier:entry.tiers[i],score:null,thru:'Not found',isOut:false};
+      found++;
+      total += g.sweepstakeScoreToPar??0;
+      let thru = '';
+      if(g.isOut){
+        const lbl = g.isCut?'MC':g.isWD?'WD':'DQ';
+        thru = lbl+' ('+fmtScore(g.scoreToPar)+' +3)';
+      } else {
+        thru = g.thru || (g.roundsPlayed+'R');
+      }
+      return {name:pn,tier:entry.tiers[i],score:g.sweepstakeScoreToPar,thru,isOut:g.isOut};
+    });
+    return {name:entry.name, total, picks, found};
+  });
+
+  results.sort((a,b)=>a.total-b.total);
+
+  document.getElementById('sweepBoard').innerHTML = results.map((r,i)=>{
+    const sc=fmtScore(r.total), cls=scoreClass(r.total);
+    return `<div class="sweep-entry">
+      <div class="sweep-row" onclick="toggleEntry(this)">
+        <div class="sweep-rank">${i+1}</div>
+        <div class="sweep-name">${r.name}</div>
+        <div class="sweep-score ${cls}">${r.found>0?sc:'—'}</div>
+      </div>
+      <div class="sweep-picks">
+        ${r.picks.map(p=>`<div class="pick-row">
+          <div><span class="pick-name">${p.name}</span>${p.isOut?' <span class="pick-mc">MC</span>':''} <span class="pick-thru">${p.thru}</span></div>
+          <div class="pick-tier">${p.tier}</div>
+          <div class="pick-score ${scoreClass(p.score)}">${fmtScore(p.score)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// --- RENDER LEADERBOARD ---
+function renderLeaderboard(list){
+  document.getElementById('golferBoard').innerHTML = `<table class="golfer-table">
+    <thead><tr><th>Pos</th><th>Player</th><th class="hm">R1</th><th class="hm">R2</th><th class="hm">R3</th><th class="hm">R4</th><th>Thru</th><th>Total</th></tr></thead>
+    <tbody>${list.map(g=>{
+      const cls=[g.picked?'picked':'',g.isOut?'mc':''].filter(Boolean).join(' ');
+      const badge=g.isOut?` <span class="pick-mc">${g.isCut?'MC':g.isWD?'WD':'DQ'}</span>`:'';
+      return `<tr class="${cls}">
+        <td class="golfer-pos">${g.position}</td>
+        <td class="golfer-name-cell">${g.name}${badge}</td>
+        <td class="hm">${g.rounds[0]??'—'}</td><td class="hm">${g.rounds[1]??'—'}</td>
+        <td class="hm">${g.rounds[2]??'—'}</td><td class="hm">${g.rounds[3]??'—'}</td>
+        <td>${g.isOut?(g.isCut?'MC':g.isWD?'WD':'DQ'):g.thru}</td>
+        <td class="golfer-total ${scoreClass(g.scoreToPar)}">${fmtScore(g.scoreToPar)}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// --- DEBUG ---
+function updateDebug(){
+  const box=document.getElementById('debugBox');
+  if(!lastRawData){box.textContent='No data yet.';return;}
+  try{
+    const ev=lastRawData.events?.[0];
+    const cs=ev?.competitions?.[0]?.competitors||ev?.competitors||[];
+    const sample=cs.slice(0,3).map(c=>({
+      name:c.athlete?.displayName,
+      score:c.score,
+      linescores:c.linescores,
+      status:c.status,
+      sortOrder:c.sortOrder
+    }));
+    box.textContent='Event: '+(ev?.name||'?')+'\nStatus: '+JSON.stringify(ev?.status?.type)+'\nPlayers: '+cs.length+'\n\nSample (first 3):\n'+JSON.stringify(sample,null,2);
+  }catch(e){box.textContent='Debug error: '+e.message;}
+}
+
+// --- GO ---
+fetchScores();
+setInterval(fetchScores, 120000);
+</script>
+</body>
+</html>
