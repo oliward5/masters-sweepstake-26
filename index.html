@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Golf Fathers Masters Sweepstake</title>
+<title>Golf Fathers PGA Sweepstake</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--masters-green:#006747;--masters-dark:#004d35;--masters-gold:#c8a951;--masters-cream:#f5f0e8;--bg:#faf8f4;--text:#1a1a1a;--text-muted:#6b6b6b;--card-bg:#fff;--card-border:rgba(0,103,71,.08);--cut-red:#b8362e;--positive:#b8362e;--negative:#006747;--font-display:'Playfair Display',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif}
+:root{--pga-blue:#1a3a5c;--pga-dark:#0f2540;--pga-gold:#c8a951;--pga-cream:#f5f0e8;--bg:#faf8f4;--text:#1a1a1a;--text-muted:#6b6b6b;--card-bg:#fff;--card-border:rgba(26,58,92,.1);--cut-red:#b8362e;--positive:#b8362e;--negative:#1a3a5c;--font-display:'Playfair Display',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif}
 body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
-.header{background:var(--masters-green);color:#fff;padding:2rem 1.5rem 1.5rem;text-align:center;position:relative;overflow:hidden}
+.header{background:var(--pga-blue);color:#fff;padding:2rem 1.5rem 1.5rem;text-align:center;position:relative;overflow:hidden}
 .header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 0%,rgba(200,169,81,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(0,0,0,.2) 0%,transparent 50%)}
 .header-content{position:relative;z-index:1;max-width:800px;margin:0 auto}
 .header h1{font-family:var(--font-display);font-weight:900;font-size:clamp(1.8rem,5vw,2.8rem);letter-spacing:.02em;line-height:1.1}
-.header h1 span{color:var(--masters-gold)}
+.header h1 span{color:var(--pga-gold)}
 .header-sub{font-size:.85rem;color:rgba(255,255,255,.7);margin-top:.5rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
 .live-dot{display:inline-block;width:8px;height:8px;background:#4ade80;border-radius:50%;margin-right:6px;animation:pulse 2s ease-in-out infinite;vertical-align:middle}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.tabs{display:flex;justify-content:center;background:var(--masters-dark);border-bottom:2px solid var(--masters-gold)}
+.tabs{display:flex;justify-content:center;background:var(--pga-dark);border-bottom:2px solid var(--pga-gold)}
 .tab{padding:.7rem 1.2rem;font-family:var(--font-body);font-weight:600;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;transition:all .2s;position:relative}
-.tab.active{color:var(--masters-gold)}
-.tab.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--masters-gold)}
+.tab.active{color:var(--pga-gold)}
+.tab.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--pga-gold)}
 .main{max-width:860px;margin:0 auto;padding:1rem 1rem 4rem}
 .status-bar{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;font-size:.78rem;color:var(--text-muted);border-bottom:1px solid var(--card-border);margin-bottom:1rem}
-.status-bar .round-info{font-weight:600;color:var(--masters-green)}
+.status-bar .round-info{font-weight:600;color:var(--pga-blue)}
 .sweep-entry{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;margin-bottom:.6rem;overflow:hidden}
-.sweep-entry:first-child{border:2px solid var(--masters-gold);box-shadow:0 2px 12px rgba(200,169,81,.15)}
-.sweep-entry:first-child .sweep-rank{background:var(--masters-gold);color:var(--masters-dark)}
+.sweep-entry:first-child{border:2px solid var(--pga-gold);box-shadow:0 2px 12px rgba(200,169,81,.15)}
+.sweep-entry:first-child .sweep-rank{background:var(--pga-gold);color:var(--pga-dark)}
 .sweep-row{display:grid;grid-template-columns:36px 1fr auto;align-items:center;padding:.75rem 1rem;gap:.75rem;cursor:pointer}
-.sweep-rank{width:28px;height:28px;border-radius:50%;background:var(--masters-green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
+.sweep-rank{width:28px;height:28px;border-radius:50%;background:var(--pga-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
 .sweep-name{font-weight:700;font-size:.95rem}
 .sweep-score{font-family:var(--font-display);font-weight:700;font-size:1.3rem}
 .score-over{color:var(--positive)}.score-under{color:var(--negative)}.score-even{color:var(--text)}
@@ -37,35 +37,35 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .pick-row{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;padding:.35rem 0;font-size:.82rem;align-items:center}
 .pick-row+.pick-row{border-top:1px solid rgba(0,0,0,.04)}
 .pick-name{font-weight:600}
-.pick-tier{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:3px;background:rgba(0,103,71,.08);color:var(--masters-green)}
+.pick-tier{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:3px;background:rgba(26,58,92,.08);color:var(--pga-blue)}
 .pick-score{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
 .pick-mc{color:var(--cut-red);font-size:.7rem;font-weight:600}
 .pick-thru{font-size:.72rem;color:var(--text-muted)}
 .golfer-table{width:100%;border-collapse:collapse}
-.golfer-table th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:.6rem .5rem;text-align:left;border-bottom:2px solid var(--masters-green);position:sticky;top:0;background:var(--bg);z-index:2}
+.golfer-table th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:.6rem .5rem;text-align:left;border-bottom:2px solid var(--pga-blue);position:sticky;top:0;background:var(--bg);z-index:2}
 .golfer-table th:nth-child(n+3),.golfer-table td:nth-child(n+3){text-align:center}
 .golfer-table td{padding:.55rem .5rem;font-size:.82rem;border-bottom:1px solid var(--card-border);font-variant-numeric:tabular-nums}
-.golfer-table tr.picked td{background:rgba(0,103,71,.04)}
+.golfer-table tr.picked td{background:rgba(26,58,92,.05)}
 .golfer-table tr.mc td{color:var(--text-muted)}
-.golfer-pos{font-weight:700;color:var(--masters-green);width:36px}
+.golfer-pos{font-weight:700;color:var(--pga-blue);width:36px}
 .golfer-name-cell{font-weight:600;white-space:nowrap}
 .golfer-total{font-weight:700}
-.rules-box{background:var(--masters-cream);border-radius:10px;padding:1.25rem;margin-top:.5rem;font-size:.82rem;line-height:1.6}
-.rules-box h3{font-family:var(--font-display);font-weight:700;color:var(--masters-green);margin-bottom:.5rem}
+.rules-box{background:var(--pga-cream);border-radius:10px;padding:1.25rem;margin-top:.5rem;font-size:.82rem;line-height:1.6}
+.rules-box h3{font-family:var(--font-display);font-weight:700;color:var(--pga-blue);margin-bottom:.5rem}
 .rules-box ul{padding-left:1.2rem}
 .rules-box li{margin-bottom:.25rem}
 .debug-box{background:#1a1a1a;color:#a3e635;border-radius:8px;padding:1rem;margin-top:1rem;font-family:monospace;font-size:.72rem;max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all;display:none}
 .debug-toggle{font-size:.72rem;color:var(--text-muted);background:none;border:1px solid var(--card-border);padding:4px 10px;border-radius:4px;cursor:pointer;margin-top:1rem}
 .loading{text-align:center;padding:4rem 1rem;color:var(--text-muted)}
-.loading-spinner{width:40px;height:40px;border:3px solid var(--card-border);border-top-color:var(--masters-green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--card-border);border-top-color:var(--pga-blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
 @keyframes spin{to{transform:rotate(360deg)}}
 .error-msg{text-align:center;padding:2rem;color:var(--cut-red);font-weight:600}
-@media(max-width:500px){.golfer-table .hm{display:none}.sweep-row{padding:.6rem .75rem}.main{padding:.75rem .75rem 3rem}.tab{padding:.7rem .8rem;font-size:.68rem}}
+@media(max-width:500px){.sweep-row{padding:.6rem .75rem}.main{padding:.75rem .75rem 3rem}.tab{padding:.7rem .8rem;font-size:.68rem}}
 </style>
 </head>
 <body>
 <div class="header"><div class="header-content">
-  <h1>Golf Fathers <span>Masters</span> Sweepstake</h1>
+  <h1>Golf Fathers <span>PGA</span> Sweepstake</h1>
   <div class="header-sub"><span class="live-dot" id="liveDot" style="display:none"></span><span id="statusText">Loading...</span></div>
 </div></div>
 <div class="tabs">
@@ -76,18 +76,18 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 <div class="main">
   <div id="sweepTab">
     <div class="status-bar"><span class="round-info" id="roundInfo">—</span><span id="lastUpdated">—</span></div>
-    <div id="sweepBoard"><div class="loading"><div class="loading-spinner"></div>Fetching scores from Augusta...</div></div>
+    <div id="sweepBoard"><div class="loading"><div class="loading-spinner"></div>Fetching scores from Aronimink...</div></div>
   </div>
   <div id="leaderboardTab" style="display:none">
-    <div class="status-bar"><span class="round-info" id="roundInfo2">—</span><span>Your picks highlighted in green</span></div>
+    <div class="status-bar"><span class="round-info" id="roundInfo2">—</span><span>Your picks highlighted</span></div>
     <div id="golferBoard"><div class="loading"><div class="loading-spinner"></div>Loading leaderboard...</div></div>
   </div>
   <div id="rulesTab" style="display:none">
     <div class="rules-box">
       <h3>How It Works</h3>
       <ul>
-        <li><strong>11 entries</strong>, each picks <strong>4 golfers</strong>.</li>
-        <li><strong>1 pick</strong> from OWGR 1–5, <strong>2 picks</strong> from OWGR 6–25, <strong>1 pick</strong> from OWGR 26+.</li>
+        <li><strong>7 entries</strong>, each picks <strong>4 golfers</strong>.</li>
+        <li><strong>1 pick</strong> from OWGR Top 5, <strong>2 picks</strong> from OWGR 6–25, <strong>1 pick</strong> from OWGR 25+.</li>
         <li>Your score = the <strong>cumulative score-to-par</strong> of your 4 golfers. Lowest wins.</li>
         <li>If a golfer <strong>misses the cut</strong>, their final score = R2 score-to-par <strong>+ 3 penalty shots</strong>.</li>
         <li>WD (withdrew) and DQ (disqualified) players treated the same as a missed cut.</li>
@@ -100,38 +100,30 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 </div>
 <script>
 // ============================================================
-//  SWEEPSTAKE CONFIG — EDIT YOUR ENTRIES HERE
-//
-//  ⚠️ Golfer names MUST match ESPN exactly.
-//  Load the app → click "Full Leaderboard" tab → copy names.
+//  SWEEPSTAKE CONFIG
 // ============================================================
 const SWEEPSTAKE_ENTRIES = [
-  { name:"Dobber", picks:["Scottie Scheffler","Justin Rose","Ludvig Aberg","Jason Day"],           tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Jill",   picks:["Rory McIlroy","Ludvig Aberg","Matt Fitzpatrick","Shane Lowry"],         tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Jack",   picks:["Cameron Young","Justin Rose","Bryson DeChambeau","Jason Day"],           tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Angus",  picks:["Tommy Fleetwood","Justin Rose","Matt Fitzpatrick","Tyrrell Hatton"],     tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Trev",   picks:["Cameron Young","Justin Rose","Ludvig Aberg","Adam Scott"],               tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Ferg",   picks:["Tommy Fleetwood","Justin Rose","Matt Fitzpatrick","Tyrrell Hatton"],     tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Jake",   picks:["Cameron Young","Justin Rose","Ludvig Aberg","Marco Penge"],              tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Miles",  picks:["Cameron Young","Justin Rose","Ludvig Aberg","Jon Rahm"],                 tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Hugo",   picks:["Cameron Young","Justin Rose","Bryson DeChambeau","Jon Rahm"],            tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Oli",    picks:["Scottie Scheffler","Matt Fitzpatrick","Bryson DeChambeau","Jon Rahm"],   tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Pete",   picks:["Rory McIlroy","Robert MacIntyre","Bryson DeChambeau","Jon Rahm"],        tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Ferg",  picks:["Rory McIlroy","Tommy Fleetwood","Chris Gotterup","Rickie Fowler"],         tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Pete",  picks:["Matt Fitzpatrick","Tommy Fleetwood","Justin Thomas","Alex Fitzpatrick"],   tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Trev",  picks:["Cameron Young","Justin Rose","Ludvig Aberg","Harry Hall"],                 tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Miles", picks:["Scottie Scheffler","Brooks Koepka","Ludvig Aberg","Rickie Fowler"],        tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Jake",  picks:["Rory McIlroy","Jon Rahm","Si Woo Kim","Bryson DeChambeau"],                tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Angus", picks:["Matt Fitzpatrick","Tommy Fleetwood","Ludvig Aberg","Viktor Hovland"],      tiers:["Top 5","6-25","6-25","25+"] },
+  { name:"Hugo",  picks:["Matt Fitzpatrick","Tommy Fleetwood","Justin Rose","Shane Lowry"],          tiers:["Top 5","6-25","6-25","25+"] },
 ];
 
-const PAR = 72;
+// Aronimink Golf Club is a par 70
+const PAR = 70;
 
 // ============================================================
 //  APP CODE — no edits needed below
 // ============================================================
 let golferData = {}, lastRawData = null;
 
-// --- Name normalization (strips accents so "Åberg" matches "Aberg") ---
 function normName(s){
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 
-// Tabs
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -145,7 +137,6 @@ document.querySelectorAll('.tab').forEach(btn => {
 
 function toggleEntry(el){ el.closest('.sweep-entry').classList.toggle('expanded'); }
 
-// --- Format helpers ---
 function fmtScore(n){
   if(n==null||isNaN(n)) return '—';
   if(n===0) return 'E';
@@ -155,16 +146,6 @@ function scoreClass(n){
   if(n==null||isNaN(n)) return 'score-even';
   return n>0?'score-over':n<0?'score-under':'score-even';
 }
-
-// ============================================================
-//  ROBUST ESPN GOLF PARSER
-//  ESPN's golf JSON structure shifts depending on:
-//    - Round in progress vs between rounds vs complete
-//    - Pre-cut vs post-cut
-//    - Active vs CUT/WD/DQ players
-//  This parser tries every known field location and falls
-//  back gracefully. A debug panel (Rules tab) shows raw data.
-// ============================================================
 
 function safeNum(v){
   if(v==null||v===''||v==='--'||v==='—') return null;
@@ -182,15 +163,15 @@ function parseScoreStr(s){
 }
 
 function extractRounds(c){
+  // Returns completed round stroke totals only.
+  // ESPN puts holes-thru (1-18) into linescores for in-progress rounds,
+  // so we filter to plausible stroke totals (>50).
   const r=[null,null,null,null];
   if(Array.isArray(c.linescores)){
     c.linescores.forEach((ls,i)=>{
       if(i<4){
         let v=safeNum(ls);
         if(v==null&&typeof ls==='object'){ v=safeNum(ls.value); if(v==null) v=safeNum(ls.displayValue); }
-        // ESPN puts holes-thru (1-18) into linescores for the
-        // in-progress round. Real stroke totals are always > 50.
-        // Only keep values that are plausible stroke totals.
         if(v!==null && v>50) r[i]=v;
       }
     });
@@ -209,7 +190,7 @@ function extractRounds(c){
 }
 
 function extractScoreToPar(c){
-  // PRIORITY 1: Parse display string "+3"/"-2"/"E" (works mid-round)
+  // PRIORITY 1: Parse display string "+3"/"-2"/"E" (always correct, even mid-round)
   if(c.score&&typeof c.score==='object'){
     let s=parseScoreStr(c.score.displayValue);
     if(s!==null) return s;
@@ -218,8 +199,7 @@ function extractScoreToPar(c){
     let s=parseScoreStr(c.score);
     if(s!==null) return s;
   }
-
-  // PRIORITY 2: Look in statistics array
+  // PRIORITY 2: statistics array
   if(Array.isArray(c.statistics)){
     for(const st of c.statistics){
       if(st.name==='scoreToPar'||st.name==='relativeScore'){
@@ -230,16 +210,13 @@ function extractScoreToPar(c){
       }
     }
   }
-
-  // PRIORITY 3: Compute from completed round stroke totals
+  // PRIORITY 3: Compute from completed round strokes
   const rounds=extractRounds(c);
   const done=rounds.filter(x=>x!==null);
   if(done.length>0) return done.reduce((a,b)=>a+b,0)-(PAR*done.length);
-
-  // PRIORITY 4: If c.score is a small number (plausible to-par), use it
+  // PRIORITY 4: If c.score is a plausible to-par number, use it
   const raw=safeNum(c.score);
   if(raw!==null && raw>-30 && raw<30) return raw;
-
   return null;
 }
 
@@ -252,50 +229,36 @@ function extractStatus(c){
   const state=(tp.state||'').toLowerCase();
   const dv=(st.displayValue||'').toUpperCase();
   const period=safeNum(st.period)||0;
-
-  // Detect out-of-tournament states
   out.isCut = nm==='cut'||desc.includes('cut')||dv==='CUT'||dv.includes('MC');
   out.isWD  = nm==='wd'||nm==='withdrawn'||desc.includes('withdraw')||dv==='WD';
   out.isDQ  = nm==='dq'||nm==='disqualified'||desc.includes('disqualif')||dv==='DQ';
   out.isActive = !out.isCut&&!out.isWD&&!out.isDQ;
   out.currentRound = period;
-
-  // Thru (holes in current round)
   if(!out.isActive){
     out.thru = out.isCut?'MC':out.isWD?'WD':'DQ';
   } else {
-    // Try status.thru first (ESPN sometimes uses this for golf)
     let thru = st.thru ?? null;
-    // If thru is null, check displayValue
     if(thru==null||thru==='') thru = st.displayValue ?? '';
     const ts = String(thru).trim().toUpperCase();
-
     if(ts==='F'||ts==='18') out.thru='F';
     else if(/^\d+$/.test(ts)&&parseInt(ts)<=18) out.thru=ts;
     else if(ts===''||ts==='—'||ts==='--'){
-      // No thru data — player may not have started, or round is between
-      // Check if state indicates in-progress
       if(state==='in') out.thru='—';
-      else out.thru='F';  // Default: assume finished if no thru data and not "in"
+      else out.thru='F';
     } else {
       out.thru=ts||'—';
     }
   }
-
   return out;
 }
 
 function extractPosition(c){
-  // Position can live in many places
   return c.status?.position?.displayName
       || (c.status?.position?.id ? String(c.status.position.id) : null)
       || (c.sortOrder ? String(c.sortOrder) : null)
       || '—';
 }
 
-// ============================================================
-//  FETCH & PROCESS
-// ============================================================
 async function fetchScores(){
   try{
     const res = await fetch('/api/scores');
@@ -303,14 +266,16 @@ async function fetchScores(){
     const data = await res.json();
     lastRawData = data;
 
-    // Find Masters event (or first event)
+    // Find PGA Championship event (or first event)
     let ev = null;
     if(data.events){
-      ev = data.events.find(e=>(e.name||'').toLowerCase().includes('masters')) || data.events[0];
+      ev = data.events.find(e=>{
+        const n=(e.name||'').toLowerCase();
+        return n.includes('pga championship')||n.includes('pga champ');
+      }) || data.events[0];
     }
-    if(!ev) throw new Error('No tournament data. ESPN may not be serving the leaderboard right now.');
+    if(!ev) throw new Error('No tournament data.');
 
-    // Tournament-level status
     const evSt = ev.status?.type || {};
     const roundDisplay = evSt.detail||evSt.shortDetail||evSt.description||'In Progress';
     document.getElementById('roundInfo').textContent = roundDisplay;
@@ -320,7 +285,6 @@ async function fetchScores(){
     const state = (evSt.state||'').toLowerCase();
     document.getElementById('liveDot').style.display = (state==='in'||state==='pre')?'inline-block':'none';
 
-    // Find competitors (ESPN nests them differently sometimes)
     let comps = ev.competitions?.[0]?.competitors || ev.competitors || [];
     if(comps.length===0) throw new Error('No player data in response.');
 
@@ -338,19 +302,15 @@ async function fetchScores(){
       const ps = extractStatus(c);
       const roundsPlayed = rounds.filter(r=>r!==null).length;
 
-      // Sweepstake score
       let sweepScore = scoreToPar;
       const isOut = ps.isCut||ps.isWD||ps.isDQ;
-
       if(isOut){
         if(rounds[0]!==null && rounds[1]!==null){
-          // Best case: we have actual R1+R2 strokes
           sweepScore = (rounds[0]+rounds[1] - PAR*2) + 3;
         } else if(scoreToPar!==null){
-          // Fallback: use whatever ESPN reports as their score, add penalty
           sweepScore = scoreToPar + 3;
         } else {
-          sweepScore = 20; // worst case fallback
+          sweepScore = 20;
         }
       }
 
@@ -361,12 +321,10 @@ async function fetchScores(){
         isCut:ps.isCut, isWD:ps.isWD, isDQ:ps.isDQ, isOut,
         picked: allPicks.has(normName(name))
       };
-
       golferData[normName(name)] = rec;
       golferList.push(rec);
     });
 
-    // Sort: active players by score, then out players
     golferList.sort((a,b)=>{
       if(a.isOut&&!b.isOut) return 1;
       if(!a.isOut&&b.isOut) return -1;
@@ -386,7 +344,6 @@ async function fetchScores(){
   }
 }
 
-// --- RENDER SWEEPSTAKE ---
 function renderSweepstake(){
   const results = SWEEPSTAKE_ENTRIES.map(entry=>{
     let total=0, found=0;
@@ -428,7 +385,6 @@ function renderSweepstake(){
   }).join('');
 }
 
-// --- RENDER LEADERBOARD ---
 function renderLeaderboard(list){
   document.getElementById('golferBoard').innerHTML = `<table class="golfer-table">
     <thead><tr><th>Pos</th><th>Player</th><th>Score</th></tr></thead>
@@ -443,7 +399,6 @@ function renderLeaderboard(list){
     }).join('')}</tbody></table>`;
 }
 
-// --- DEBUG ---
 function updateDebug(){
   const box=document.getElementById('debugBox');
   if(!lastRawData){box.textContent='No data yet.';return;}
@@ -463,7 +418,6 @@ function updateDebug(){
   }catch(e){box.textContent='Debug error: '+e.message;}
 }
 
-// --- GO ---
 fetchScores();
 setInterval(fetchScores, 120000);
 </script>
