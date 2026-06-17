@@ -69,6 +69,14 @@ export default async function handler(req, res) {
     const eligible = (config && Array.isArray(config.eligibleNames)) ? config.eligibleNames : [];
     const availableNames = eligible.filter(n => !takenNames.includes(n));
 
+    // Hide everyone's picks until all eligible players have submitted. Until then
+    // we only expose WHO has entered (name + submitted), never their golfer choices.
+    // Enforced here on the server so the raw API can't leak picks early.
+    const revealed = eligible.length > 0 && takenNames.length >= eligible.length;
+    const publicEntries = revealed
+      ? entries
+      : entries.map(e => ({ name: e.name, submittedAt: e.submittedAt, locked: true }));
+
     res.status(200).json({
       configured: !!config,
       config: config ? {
@@ -76,7 +84,10 @@ export default async function handler(req, res) {
         par: config.par,
         eligibleNames: eligible,
       } : null,
-      entries,
+      entries: publicEntries,
+      revealed,
+      submittedCount: takenNames.length,
+      totalNames: eligible.length,
       golfers,
       takenNames,
       availableNames,

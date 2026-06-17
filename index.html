@@ -94,6 +94,12 @@ textarea{min-height:7rem;resize:vertical;line-height:1.5}
 .admin-section{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:1.25rem;margin-bottom:1rem}
 .admin-section h3{font-family:var(--font-display);font-weight:700;color:var(--gf-blue);margin-bottom:.75rem}
 .admin-field{margin-bottom:.85rem}
+.reveal-banner{background:var(--gf-cream);border:1px solid var(--card-border);border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1rem;text-align:center}
+.reveal-banner .big{font-family:var(--font-display);font-weight:900;font-size:1.6rem;color:var(--gf-blue)}
+.status-list{display:flex;flex-direction:column;gap:.4rem}
+.status-item{display:flex;justify-content:space-between;align-items:center;background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:.6rem .9rem;font-size:.92rem;font-weight:600}
+.status-item .badge-in{color:#15803d;font-weight:700;font-size:.8rem}
+.status-item .badge-wait{color:var(--text-muted);font-weight:600;font-size:.8rem}
 </style>
 </head>
 <body>
@@ -182,7 +188,8 @@ textarea{min-height:7rem;resize:vertical;line-height:1.5}
 // Picks/config now come from the API (Upstash Redis); golfer tiers come from
 // the live OWGR ranking. Nothing to hardcode here.
 let APP = { config:null, entries:[], golfers:{}, configured:false,
-            availableNames:[], takenNames:[], eventPeriod:0, eventFinal:false };
+            availableNames:[], takenNames:[], revealed:false, submittedCount:0, totalNames:0,
+            eventPeriod:0, eventFinal:false };
 let RANKINGS = null;            // normName -> world rank
 let FIELD = [];                 // [{name}] players in this week's event
 let PAR = 70;                   // overwritten by config.par once loaded
@@ -472,6 +479,22 @@ function renderSweepstake(){
     board.innerHTML = '<div class="panel-msg">No picks submitted yet.<br>Head to <strong>My Pick</strong> to enter.</div>';
     return;
   }
+  // Picks stay hidden until everyone has entered — show who's in, not what they chose.
+  if(!APP.revealed){
+    const eligible = APP.config?.eligibleNames || [];
+    const submitted = new Set(APP.takenNames);
+    const remaining = Math.max(0, APP.totalNames - APP.submittedCount);
+    const rows = eligible.map(n=>`<div class="status-item"><span>${esc(n)}</span>${submitted.has(n)
+      ? '<span class="badge-in">✓ Locked in</span>'
+      : '<span class="badge-wait">⏳ Waiting</span>'}</div>`).join('');
+    board.innerHTML = `
+      <div class="reveal-banner">
+        <div class="big">${APP.submittedCount} / ${APP.totalNames} in</div>
+        <div class="hint" style="margin-top:.35rem">Everyone can see who's entered, but picks stay hidden until all ${APP.totalNames} are in${remaining>0?` — ${remaining} to go`:''}.</div>
+      </div>
+      <div class="status-list">${rows}</div>`;
+    return;
+  }
   const results = APP.entries.map(entry=>{
     let total=0, found=0;
     const tiers = entry.tiers || [];
@@ -550,6 +573,9 @@ async function loadState(){
     APP.configured = !!s.configured;
     APP.availableNames = s.availableNames || [];
     APP.takenNames = s.takenNames || [];
+    APP.revealed = !!s.revealed;
+    APP.submittedCount = s.submittedCount || 0;
+    APP.totalNames = s.totalNames || 0;
     if(APP.config && APP.config.par) PAR = Number(APP.config.par) || PAR;
   }catch(e){ console.error('state load failed', e); }
 }
@@ -671,6 +697,8 @@ async function submitMyPick(){
     const data = await res.json();
     if(res.ok && data.ok){
       localStorage.setItem('sweep:myName', myPickState.name);
+      // Save own picks locally so this browser can still see them while picks are hidden.
+      try{ localStorage.setItem('sweep:myPicks', JSON.stringify({ picks:data.entry.picks, tiers:data.entry.tiers })); }catch(e){}
       await loadState();
       renderMyPick();
       showTab('sweep');
@@ -698,14 +726,25 @@ function friendlyError(data){
 }
 
 function lockedCardHtml(entry){
-  const rows = (entry.picks||[]).map((p,i)=>`<div class="pick-row">
-    <div><span class="pick-name">${esc(p)}</span></div>
-    <div class="pick-tier">${esc((entry.tiers||[])[i]||'')}</div>
-    <div></div></div>`).join('');
+  // Pre-reveal the API redacts picks, so fall back to this browser's own saved picks.
+  let picks = entry.picks, tiers = entry.tiers;
+  if(!picks){
+    try{ const lp = JSON.parse(localStorage.getItem('sweep:myPicks')||'null'); if(lp && lp.picks){ picks = lp.picks; tiers = lp.tiers || []; } }catch(e){}
+  }
+  const body = picks
+    ? picks.map((p,i)=>`<div class="pick-row">
+        <div><span class="pick-name">${esc(p)}</span></div>
+        <div class="pick-tier">${esc((tiers||[])[i]||'')}</div>
+        <div></div></div>`).join('')
+    : '<p class="hint">Your picks are saved.</p>';
+  const hiddenNote = !APP.revealed
+    ? `<p class="hint" style="margin-top:.5rem">Others can see you've entered, but nobody can see picks until all ${APP.totalNames} are in.</p>`
+    : '';
   return `<div class="locked-card">
     <h3>Your picks are locked in 🔒</h3>
-    <div style="display:block">${rows}</div>
+    <div style="display:block">${body}</div>
     <p class="hint" style="margin-top:.75rem">Entered as <strong>${esc(entry.name)}</strong>. Need a change? Ask the organiser to reset your entry.</p>
+    ${hiddenNote}
   </div>`;
 }
 
