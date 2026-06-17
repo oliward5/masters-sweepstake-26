@@ -25,8 +25,14 @@ itself from everyone's picks plus live scores. Deployed on Vercel.
 ESPN deletes missed-cut players from its feed once a tournament finalises, so
 `api/scores.js` snapshots each golfer's round scores into Redis (key `sweep:golfers`)
 on a throttle. The front-end keeps applying the +3 penalty from that snapshot even
-after a player disappears. (This means the app should be open during rounds 1–2 so
-those scores get captured; an optional Vercel Cron can guarantee it.)
+after a player disappears. The snapshot runs whenever anyone has the app open, and a
+**Vercel Cron** (`vercel.json`) hits `/api/scores` daily at 23:00 UTC as a backstop so
+at least one capture happens each day even if nobody's watching.
+
+> The cron is set to **once a day** because Vercel's Hobby plan only allows daily
+> crons. On a **Pro** plan, change the schedule in `vercel.json` to something frequent
+> during tournament week (e.g. `"*/15 * * * *"` for every 15 minutes) for the most
+> reliable cut capture.
 
 ## Setup (one-time)
 1. **Create a free [Upstash](https://upstash.com) Redis database.** Copy its REST URL
