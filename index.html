@@ -61,6 +61,39 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 @keyframes spin{to{transform:rotate(360deg)}}
 .error-msg{text-align:center;padding:2rem;color:var(--cut-red);font-weight:600}
 @media(max-width:500px){.sweep-row{padding:.6rem .75rem}.main{padding:.75rem .75rem 3rem}.tab{padding:.7rem .8rem;font-size:.68rem}}
+/* My Pick + Admin */
+.panel-msg{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:1.5rem;text-align:center;color:var(--text-muted);font-size:.9rem;line-height:1.5}
+.pick-form{display:flex;flex-direction:column;gap:1rem}
+.field-group{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:1rem}
+.field-group h3{font-family:var(--font-display);font-weight:700;color:var(--pga-blue);font-size:1.05rem;margin-bottom:.15rem}
+.field-group .hint{font-size:.74rem;color:var(--text-muted);margin-bottom:.6rem}
+.field-label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.35rem}
+.tier-block{margin-top:.85rem}
+.tier-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--pga-blue);padding-bottom:.3rem;margin-bottom:.5rem}
+.tier-head .tier-name{font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--pga-blue)}
+.tier-head .tier-rule{font-size:.72rem;color:var(--text-muted)}
+.tier-head .tier-rule.ok{color:#15803d;font-weight:700}
+.golfer-opts{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem}
+@media(max-width:500px){.golfer-opts{grid-template-columns:1fr}}
+.golfer-opt{display:flex;align-items:center;gap:.4rem;font-size:.84rem;padding:.2rem 0;cursor:pointer}
+.golfer-opt input{cursor:pointer}
+.golfer-opt .rk{color:var(--text-muted);font-size:.74rem;font-variant-numeric:tabular-nums}
+.golfer-opt.disabled{opacity:.4;cursor:not-allowed}
+select,input[type=text],input[type=number],input[type=password],textarea{font-family:var(--font-body);font-size:.9rem;padding:.55rem .65rem;border:1px solid var(--card-border);border-radius:7px;width:100%;background:#fff;color:var(--text)}
+textarea{min-height:7rem;resize:vertical;line-height:1.5}
+.btn{font-family:var(--font-body);font-weight:700;font-size:.85rem;letter-spacing:.03em;padding:.7rem 1.2rem;border:none;border-radius:8px;background:var(--pga-blue);color:#fff;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.9}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-gold{background:var(--pga-gold);color:var(--pga-dark)}
+.btn-danger{background:var(--cut-red)}
+.btn-row{display:flex;gap:.6rem;flex-wrap:wrap}
+.form-msg{font-size:.82rem;font-weight:600;padding:.6rem .8rem;border-radius:7px;margin-top:.3rem}
+.form-msg.err{background:rgba(184,54,46,.1);color:var(--cut-red)}
+.form-msg.ok{background:rgba(21,128,61,.1);color:#15803d}
+.locked-card{background:var(--pga-cream);border:2px solid var(--pga-gold);border-radius:10px;padding:1.25rem}
+.locked-card h3{font-family:var(--font-display);color:var(--pga-blue);margin-bottom:.6rem}
+.admin-section{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.admin-section h3{font-family:var(--font-display);font-weight:700;color:var(--pga-blue);margin-bottom:.75rem}
+.admin-field{margin-bottom:.85rem}
 </style>
 </head>
 <body>
@@ -70,13 +103,56 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 </div></div>
 <div class="tabs">
   <button class="tab active" data-tab="sweep">Sweepstake</button>
+  <button class="tab" data-tab="mypick">My Pick</button>
   <button class="tab" data-tab="leaderboard">Full Leaderboard</button>
   <button class="tab" data-tab="rules">Rules</button>
 </div>
 <div class="main">
   <div id="sweepTab">
     <div class="status-bar"><span class="round-info" id="roundInfo">—</span><span id="lastUpdated">—</span></div>
-    <div id="sweepBoard"><div class="loading"><div class="loading-spinner"></div>Fetching scores from Aronimink...</div></div>
+    <div id="sweepBoard"><div class="loading"><div class="loading-spinner"></div>Fetching live scores...</div></div>
+  </div>
+  <div id="mypickTab" style="display:none">
+    <div id="mypickBody"><div class="loading"><div class="loading-spinner"></div>Loading…</div></div>
+  </div>
+  <div id="adminTab" style="display:none">
+    <div class="admin-section">
+      <h3>Organiser Setup</h3>
+      <div class="admin-field">
+        <label class="field-label">Admin token</label>
+        <input type="password" id="adminToken" placeholder="Enter the ADMIN_TOKEN">
+      </div>
+      <div class="admin-field">
+        <label class="field-label">Event name</label>
+        <input type="text" id="adminEvent" placeholder="e.g. U.S. Open 2026">
+      </div>
+      <div class="admin-field">
+        <label class="field-label">Course par</label>
+        <input type="number" id="adminPar" value="70" min="50" max="80">
+      </div>
+      <div class="admin-field">
+        <label class="field-label">Eligible names (one per line)</label>
+        <textarea id="adminNames" placeholder="Ferg&#10;Pete&#10;Trev&#10;…"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="adminSaveBtn">Save config</button>
+      </div>
+      <div id="adminMsg"></div>
+    </div>
+    <div class="admin-section">
+      <h3>Reset entries</h3>
+      <div class="admin-field">
+        <label class="field-label">Reset one entry</label>
+        <div class="btn-row">
+          <select id="adminResetName" style="max-width:200px"></select>
+          <button class="btn btn-danger" id="adminResetOneBtn">Remove</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger" id="adminResetAllBtn">Reset ALL (new tournament)</button>
+      </div>
+      <div id="adminResetMsg"></div>
+    </div>
   </div>
   <div id="leaderboardTab" style="display:none">
     <div class="status-bar"><span class="round-info" id="roundInfo2">—</span><span>Your picks highlighted</span></div>
@@ -86,10 +162,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
     <div class="rules-box">
       <h3>How It Works</h3>
       <ul>
-        <li><strong>7 entries</strong>, each picks <strong>4 golfers</strong>.</li>
-        <li><strong>1 pick</strong> from OWGR Top 5, <strong>2 picks</strong> from OWGR 6–25, <strong>1 pick</strong> from OWGR 25+.</li>
+        <li>Go to <strong>My Pick</strong>, choose your name and select <strong>4 golfers</strong>. Once submitted, your picks <strong>lock</strong>.</li>
+        <li><strong>1 pick</strong> from OWGR Top 5, <strong>2 picks</strong> from OWGR 6–25, <strong>1 pick</strong> from OWGR 25+. Tiers come from the <strong>live world ranking</strong>.</li>
+        <li>You can only pick golfers who are <strong>in this week's field</strong>.</li>
         <li>Your score = the <strong>cumulative score-to-par</strong> of your 4 golfers. Lowest wins.</li>
-        <li>If a golfer <strong>misses the cut</strong>, their final score = R2 score-to-par <strong>+ 3 penalty shots</strong>.</li>
+        <li>If a golfer <strong>misses the cut</strong>, their final score = score-to-par after their two rounds <strong>+ 3 penalty shots</strong>.</li>
         <li>WD (withdrew) and DQ (disqualified) players treated the same as a missed cut.</li>
         <li>Scores update automatically every 2 minutes.</li>
       </ul>
@@ -100,23 +177,25 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 </div>
 <script>
 // ============================================================
-//  SWEEPSTAKE CONFIG
+//  APP STATE
 // ============================================================
-const SWEEPSTAKE_ENTRIES = [
-  { name:"Ferg",  picks:["Rory McIlroy","Tommy Fleetwood","Chris Gotterup","Rickie Fowler"],         tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Pete",  picks:["Matt Fitzpatrick","Tommy Fleetwood","Justin Thomas","Alex Fitzpatrick"],   tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Trev",  picks:["Cameron Young","Justin Rose","Ludvig Aberg","Harry Hall"],                 tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Miles", picks:["Scottie Scheffler","Brooks Koepka","Ludvig Aberg","Rickie Fowler"],        tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Jake",  picks:["Rory McIlroy","Jon Rahm","Si Woo Kim","Bryson DeChambeau"],                tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Angus", picks:["Matt Fitzpatrick","Tommy Fleetwood","Ludvig Aberg","Viktor Hovland"],      tiers:["Top 5","6-25","6-25","25+"] },
-  { name:"Hugo",  picks:["Matt Fitzpatrick","Tommy Fleetwood","Justin Rose","Shane Lowry"],          tiers:["Top 5","6-25","6-25","25+"] },
-];
+// Picks/config now come from the API (Upstash Redis); golfer tiers come from
+// the live OWGR ranking. Nothing to hardcode here.
+let APP = { config:null, entries:[], golfers:{}, configured:false,
+            availableNames:[], takenNames:[], eventPeriod:0, eventFinal:false };
+let RANKINGS = null;            // normName -> world rank
+let FIELD = [];                 // [{name}] players in this week's event
+let PAR = 70;                   // overwritten by config.par once loaded
 
-// Aronimink Golf Club is a par 70
-const PAR = 70;
+function tierForRank(rank){
+  if(rank==null) return '25+';
+  if(rank<=5) return 'Top 5';
+  if(rank<=25) return '6-25';
+  return '25+';
+}
 
 // ============================================================
-//  APP CODE — no edits needed below
+//  APP CODE
 // ============================================================
 let golferData = {}, lastRawData = null;
 
@@ -124,16 +203,15 @@ function normName(s){
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 
+const TAB_IDS = ['sweep','mypick','leaderboard','rules'];
 document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    const t = btn.dataset.tab;
-    document.getElementById('sweepTab').style.display = t==='sweep'?'':'none';
-    document.getElementById('leaderboardTab').style.display = t==='leaderboard'?'':'none';
-    document.getElementById('rulesTab').style.display = t==='rules'?'':'none';
-  });
+  btn.addEventListener('click', () => showTab(btn.dataset.tab));
 });
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab===t));
+  TAB_IDS.forEach(id => { const el=document.getElementById(id+'Tab'); if(el) el.style.display = id===t ? '' : 'none'; });
+  if(t==='mypick') renderMyPick();
+}
 
 function toggleEntry(el){ el.closest('.sweep-entry').classList.toggle('expanded'); }
 
@@ -266,13 +344,12 @@ async function fetchScores(){
     const data = await res.json();
     lastRawData = data;
 
-    // Find PGA Championship event (or first event)
+    // Use the configured event if its name matches, else the in-focus event.
     let ev = null;
-    if(data.events){
-      ev = data.events.find(e=>{
-        const n=(e.name||'').toLowerCase();
-        return n.includes('pga championship')||n.includes('pga champ');
-      }) || data.events[0];
+    if(data.events && data.events.length){
+      const want = (APP.config?.eventName||'').toLowerCase().trim();
+      if(want) ev = data.events.find(e=>(e.name||'').toLowerCase().includes(want)) || null;
+      ev = ev || data.events[0];
     }
     if(!ev) throw new Error('No tournament data.');
 
@@ -280,16 +357,22 @@ async function fetchScores(){
     const roundDisplay = evSt.detail||evSt.shortDetail||evSt.description||'In Progress';
     document.getElementById('roundInfo').textContent = roundDisplay;
     document.getElementById('roundInfo2').textContent = roundDisplay;
-    document.getElementById('statusText').textContent = roundDisplay;
+    document.getElementById('statusText').textContent = APP.config?.eventName || ev.name || roundDisplay;
 
     const state = (evSt.state||'').toLowerCase();
     document.getElementById('liveDot').style.display = (state==='in'||state==='pre')?'inline-block':'none';
+    APP.eventPeriod = ev.status?.period || 0;
+    APP.eventFinal = !!evSt.completed || state==='post';
 
     let comps = ev.competitions?.[0]?.competitors || ev.competitors || [];
     if(comps.length===0) throw new Error('No player data in response.');
 
+    // Remember the field so the My Pick selectors only offer players who are playing.
+    FIELD = comps.map(c=>({ name: c.athlete?.displayName || c.athlete?.fullName || c.athlete?.shortName }))
+                 .filter(p=>p.name);
+
     const allPicks = new Set();
-    SWEEPSTAKE_ENTRIES.forEach(e=>e.picks.forEach(p=>allPicks.add(normName(p))));
+    APP.entries.forEach(e=>(e.picks||[]).forEach(p=>allPicks.add(normName(p))));
 
     golferData = {};
     const golferList = [];
@@ -344,24 +427,60 @@ async function fetchScores(){
   }
 }
 
-function renderSweepstake(){
-  const results = SWEEPSTAKE_ENTRIES.map(entry=>{
-    let total=0, found=0;
-    const picks = entry.picks.map((pn,i)=>{
-      const g = golferData[normName(pn)];
-      if(!g) return {name:pn,tier:entry.tiers[i],score:null,thru:'Not found',isOut:false};
-      found++;
-      total += g.sweepstakeScoreToPar??0;
-      let thru = '';
-      if(g.isOut){
-        const lbl = g.isCut?'MC':g.isWD?'WD':'DQ';
-        thru = lbl+' ('+fmtScore(g.scoreToPar)+' +3)';
-      } else {
-        thru = g.thru || (g.roundsPlayed+'R');
+function snapshotCutScore(snap){
+  const r = (snap && snap.rounds) || [];
+  if(r[0]!=null && r[1]!=null) return (r[0]+r[1]-2*PAR)+3;
+  if(snap && snap.scoreToPar!=null) return snap.scoreToPar+3;
+  return null;
+}
+
+// Resolve a pick's score. Falls back to the Redis snapshot for players ESPN has
+// dropped from the feed (i.e. missed the cut) so the +3 penalty still applies.
+function resolvePick(pn){
+  const key = normName(pn);
+  const g = golferData[key];
+  if(g){
+    if(g.isOut){
+      const lbl = g.isCut?'MC':g.isWD?'WD':'DQ';
+      return { score:g.sweepstakeScoreToPar, thru:lbl+' ('+fmtScore(g.scoreToPar)+' +3)', isOut:true, found:true };
+    }
+    return { score:g.sweepstakeScoreToPar, thru:(g.thru || (g.roundsPlayed+'R')), isOut:false, found:true };
+  }
+  const snap = APP.golfers && APP.golfers[key];
+  if(snap){
+    const pastCut = APP.eventPeriod>=3 || APP.eventFinal;
+    const flaggedOut = snap.status==='cut'||snap.status==='wd'||snap.status==='dq';
+    if(flaggedOut || pastCut){
+      const sc = snapshotCutScore(snap);
+      if(sc!=null){
+        const r = snap.rounds||[];
+        const base = (r[0]!=null && r[1]!=null) ? (r[0]+r[1]-2*PAR) : snap.scoreToPar;
+        return { score:sc, thru:'MC ('+fmtScore(base)+' +3)', isOut:true, found:true };
       }
-      return {name:pn,tier:entry.tiers[i],score:g.sweepstakeScoreToPar,thru,isOut:g.isOut};
+    }
+  }
+  return { score:null, thru:'Not found', isOut:false, found:false };
+}
+
+function renderSweepstake(){
+  const board = document.getElementById('sweepBoard');
+  if(!APP.configured){
+    board.innerHTML = '<div class="panel-msg">The sweepstake hasn\'t been set up yet.<br>The organiser needs to configure it first.</div>';
+    return;
+  }
+  if(!APP.entries.length){
+    board.innerHTML = '<div class="panel-msg">No picks submitted yet.<br>Head to <strong>My Pick</strong> to enter.</div>';
+    return;
+  }
+  const results = APP.entries.map(entry=>{
+    let total=0, found=0;
+    const tiers = entry.tiers || [];
+    const picks = (entry.picks||[]).map((pn,i)=>{
+      const r = resolvePick(pn);
+      if(r.found){ found++; total += r.score??0; }
+      return { name:pn, tier:tiers[i]||'', score:r.score, thru:r.thru, isOut:r.isOut };
     });
-    return {name:entry.name, total, picks, found};
+    return { name:entry.name, total, picks, found };
   });
 
   results.sort((a,b)=>a.total-b.total);
@@ -418,8 +537,245 @@ function updateDebug(){
   }catch(e){box.textContent='Debug error: '+e.message;}
 }
 
-fetchScores();
-setInterval(fetchScores, 120000);
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ---------- Shared state ----------
+async function loadState(){
+  try{
+    const res = await fetch('/api/state');
+    const s = await res.json();
+    APP.config = s.config;
+    APP.entries = s.entries || [];
+    APP.golfers = s.golfers || {};
+    APP.configured = !!s.configured;
+    APP.availableNames = s.availableNames || [];
+    APP.takenNames = s.takenNames || [];
+    if(APP.config && APP.config.par) PAR = Number(APP.config.par) || PAR;
+  }catch(e){ console.error('state load failed', e); }
+}
+
+async function loadRankings(){
+  if(RANKINGS) return RANKINGS;
+  try{
+    const res = await fetch('/api/rankings');
+    const data = await res.json();
+    const map = {};
+    (data.rankings||[]).forEach(r=>{ map[r.normName]=r.rank; });
+    RANKINGS = map;
+  }catch(e){ RANKINGS = {}; }
+  return RANKINGS;
+}
+
+// ---------- My Pick ----------
+let myPickState = { name:null, picks:{ 'Top 5':[], '6-25':[], '25+':[] } };
+
+async function renderMyPick(){
+  const body = document.getElementById('mypickBody');
+  if(!APP.configured){
+    body.innerHTML = '<div class="panel-msg">The sweepstake hasn\'t been set up yet. Check back once the organiser has configured it.</div>';
+    return;
+  }
+  await loadRankings();
+  const mine = localStorage.getItem('sweep:myName');
+  const myEntry = mine ? APP.entries.find(e=>e.name===mine) : null;
+  if(myEntry){ body.innerHTML = lockedCardHtml(myEntry); return; }
+  if(!FIELD.length){
+    body.innerHTML = '<div class="panel-msg">The tournament field isn\'t available yet. Please check back closer to the event.</div>';
+    return;
+  }
+  if(!APP.availableNames.length){
+    body.innerHTML = '<div class="panel-msg">All names have been claimed. If one is yours, ask the organiser to reset it.</div>';
+    return;
+  }
+
+  const tiers = { 'Top 5':[], '6-25':[], '25+':[] };
+  FIELD.forEach(p=>{
+    const rank = RANKINGS[normName(p.name)] ?? null;
+    tiers[tierForRank(rank)].push({ name:p.name, rank });
+  });
+  Object.values(tiers).forEach(arr=>arr.sort((a,b)=>(a.rank??9999)-(b.rank??9999)));
+
+  myPickState = { name:null, picks:{ 'Top 5':[], '6-25':[], '25+':[] } };
+
+  const nameOpts = APP.availableNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  body.innerHTML = `
+    <div class="pick-form">
+      <div class="field-group">
+        <label class="field-label">Who are you?</label>
+        <select id="mpName"><option value="">— choose your name —</option>${nameOpts}</select>
+      </div>
+      <div class="field-group">
+        <h3>Pick your 4 golfers</h3>
+        <div class="hint">Tiers are set by live world ranking; you can only pick players in this week's field.</div>
+        ${tierBlockHtml('Top 5', 1, tiers['Top 5'])}
+        ${tierBlockHtml('6-25', 2, tiers['6-25'])}
+        ${tierBlockHtml('25+', 1, tiers['25+'])}
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" id="mpSubmit" disabled>Submit &amp; lock in</button></div>
+      <div id="mpMsg"></div>
+    </div>`;
+
+  document.getElementById('mpName').addEventListener('change', e=>{ myPickState.name = e.target.value||null; refreshMyPickValidity(); });
+  body.querySelectorAll('.golfer-opt input').forEach(inp=>inp.addEventListener('change', ()=>onPickChange(inp)));
+  document.getElementById('mpSubmit').addEventListener('click', submitMyPick);
+}
+
+function tierKey(tier){ return tier.replace(/[^a-z0-9]/gi,''); }
+
+function tierBlockHtml(tier, need, players){
+  const id = tierKey(tier);
+  const inputType = need===1 ? 'radio' : 'checkbox';
+  const opts = players.map(p=>
+    `<label class="golfer-opt"><input type="${inputType}" name="tier_${id}" value="${esc(p.name)}" data-tier="${esc(tier)}"> <span>${esc(p.name)}</span> <span class="rk">${p.rank?('#'+p.rank):'unranked'}</span></label>`
+  ).join('') || '<div class="hint">No players from this tier are in the field.</div>';
+  return `<div class="tier-block">
+    <div class="tier-head"><span class="tier-name">${esc(tier)}</span><span class="tier-rule" id="rule_${id}">pick ${need}</span></div>
+    <div class="golfer-opts">${opts}</div>
+  </div>`;
+}
+
+function onPickChange(inp){
+  const tier = inp.dataset.tier;
+  const need = tier==='6-25' ? 2 : 1;
+  const id = tierKey(tier);
+  let checked = Array.from(document.querySelectorAll(`input[name="tier_${id}"]:checked`));
+  if(checked.length>need){ inp.checked=false; checked = checked.filter(x=>x!==inp); }
+  myPickState.picks[tier] = checked.map(x=>x.value);
+  const rule = document.getElementById('rule_'+id);
+  const got = myPickState.picks[tier].length;
+  const ok = got===need;
+  rule.textContent = ok ? ('✓ '+got+'/'+need) : ('pick '+need+' ('+got+'/'+need+')');
+  rule.classList.toggle('ok', ok);
+  refreshMyPickValidity();
+}
+
+function refreshMyPickValidity(){
+  const ok = myPickState.name
+    && myPickState.picks['Top 5'].length===1
+    && myPickState.picks['6-25'].length===2
+    && myPickState.picks['25+'].length===1;
+  const btn = document.getElementById('mpSubmit');
+  if(btn) btn.disabled = !ok;
+}
+
+async function submitMyPick(){
+  const btn = document.getElementById('mpSubmit');
+  const msg = document.getElementById('mpMsg');
+  const picks = [...myPickState.picks['Top 5'], ...myPickState.picks['6-25'], ...myPickState.picks['25+']];
+  btn.disabled = true; msg.className=''; msg.textContent='';
+  try{
+    const res = await fetch('/api/claim', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name:myPickState.name, picks })
+    });
+    const data = await res.json();
+    if(res.ok && data.ok){
+      localStorage.setItem('sweep:myName', myPickState.name);
+      await loadState();
+      renderMyPick();
+      showTab('sweep');
+      return;
+    }
+    if(res.status===409){
+      msg.className='form-msg err'; msg.textContent='That name was just taken — please pick another.';
+      await loadState(); renderMyPick(); return;
+    }
+    msg.className='form-msg err'; msg.textContent = friendlyError(data); btn.disabled=false;
+  }catch(e){
+    msg.className='form-msg err'; msg.textContent='Network error — please try again.'; btn.disabled=false;
+  }
+}
+
+function friendlyError(data){
+  switch(data && data.error){
+    case 'TIER_RULE': return 'Picks must be 1 from Top-5, 2 from 6-25, 1 from 25+.';
+    case 'INVALID_PICKS': return (data.detail) || 'One of your picks isn\'t valid.';
+    case 'INVALID_NAME': return 'That name isn\'t on the eligible list.';
+    case 'NOT_CONFIGURED': return 'The sweepstake isn\'t set up yet.';
+    case 'FIELD_UNAVAILABLE': return 'The tournament field isn\'t published yet.';
+    default: return (data && (data.detail||data.error)) || 'Something went wrong.';
+  }
+}
+
+function lockedCardHtml(entry){
+  const rows = (entry.picks||[]).map((p,i)=>`<div class="pick-row">
+    <div><span class="pick-name">${esc(p)}</span></div>
+    <div class="pick-tier">${esc((entry.tiers||[])[i]||'')}</div>
+    <div></div></div>`).join('');
+  return `<div class="locked-card">
+    <h3>Your picks are locked in 🔒</h3>
+    <div style="display:block">${rows}</div>
+    <p class="hint" style="margin-top:.75rem">Entered as <strong>${esc(entry.name)}</strong>. Need a change? Ask the organiser to reset your entry.</p>
+  </div>`;
+}
+
+// ---------- Admin (reach via #admin) ----------
+function initAdmin(){
+  if(location.hash!=='#admin') return;
+  document.querySelector('.tabs').style.display='none';
+  ['sweepTab','mypickTab','leaderboardTab','rulesTab'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  document.getElementById('adminTab').style.display='';
+  if(APP.config){
+    document.getElementById('adminEvent').value = APP.config.eventName||'';
+    document.getElementById('adminPar').value = APP.config.par||70;
+    document.getElementById('adminNames').value = (APP.config.eligibleNames||[]).join('\n');
+  }
+  refreshAdminResetNames();
+  const tok = ()=>document.getElementById('adminToken').value.trim();
+  document.getElementById('adminSaveBtn').addEventListener('click', async ()=>{
+    const msg=document.getElementById('adminMsg');
+    const names = document.getElementById('adminNames').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const r = await adminPost({ action:'setConfig', token:tok(), eventName:document.getElementById('adminEvent').value, par:Number(document.getElementById('adminPar').value), eligibleNames:names });
+    showAdminMsg(msg, r);
+    if(r.ok){ await loadState(); refreshAdminResetNames(); }
+  });
+  document.getElementById('adminResetOneBtn').addEventListener('click', async ()=>{
+    const msg=document.getElementById('adminResetMsg');
+    const target=document.getElementById('adminResetName').value;
+    if(!target) return;
+    const r = await adminPost({ action:'resetEntry', token:tok(), target });
+    showAdminMsg(msg, r);
+    if(r.ok){ await loadState(); refreshAdminResetNames(); }
+  });
+  document.getElementById('adminResetAllBtn').addEventListener('click', async ()=>{
+    const msg=document.getElementById('adminResetMsg');
+    if(!confirm('Reset ALL entries and the score snapshot? This starts a fresh tournament.')) return;
+    const r = await adminPost({ action:'resetAll', token:tok() });
+    showAdminMsg(msg, r);
+    if(r.ok){ await loadState(); refreshAdminResetNames(); }
+  });
+}
+
+function refreshAdminResetNames(){
+  const sel=document.getElementById('adminResetName');
+  if(!sel) return;
+  sel.innerHTML = (APP.takenNames && APP.takenNames.length)
+    ? APP.takenNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')
+    : '<option value="">(no entries)</option>';
+}
+
+async function adminPost(body){
+  try{
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await res.json();
+    return { ok: res.ok && data.ok, data, status:res.status };
+  }catch(e){ return { ok:false, data:{error:'NETWORK'}, status:0 }; }
+}
+
+function showAdminMsg(el, r){
+  el.className = 'form-msg ' + (r.ok?'ok':'err');
+  if(r.ok){ el.textContent='Saved.'; return; }
+  if(r.status===401){ el.textContent='Wrong admin token.'; return; }
+  el.textContent = friendlyError(r.data);
+}
+
+// ---------- Startup ----------
+(async function init(){
+  await loadState();
+  initAdmin();
+  await fetchScores();
+  setInterval(async ()=>{ await loadState(); await fetchScores(); }, 120000);
+})();
 </script>
 </body>
 </html>
