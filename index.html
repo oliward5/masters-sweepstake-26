@@ -189,7 +189,7 @@ textarea{min-height:7rem;resize:vertical;line-height:1.5}
 // the live OWGR ranking. Nothing to hardcode here.
 let APP = { config:null, entries:[], golfers:{}, configured:false,
             availableNames:[], takenNames:[], revealed:false, submittedCount:0, totalNames:0,
-            eventPeriod:0, eventFinal:false };
+            eventPeriod:0, eventFinal:false, fieldMaxRounds:0 };
 let RANKINGS = null;            // normName -> world rank
 let FIELD = [];                 // [{name}] players in this week's event
 let PAR = 70;                   // overwritten by config.par once loaded
@@ -384,6 +384,22 @@ async function fetchScores(){
     golferData = {};
     const golferList = [];
 
+    // ESPN provides no cut flag during a live event, so infer the cut from round
+    // progress: once the field is into R3+, anyone stuck on <=2 completed rounds
+    // who hasn't started R3 has missed the cut (or withdrawn).
+    const completedRoundsOf = c => extractRounds(c).filter(r=>r!==null).length;
+    const startedRound = (c,idx)=>{
+      const ls = c.linescores && c.linescores[idx];
+      if(!ls) return false;
+      if(safeNum(ls.value) > 0) return true;
+      const dv = String(ls.displayValue||'').trim();
+      if(dv && dv!=='-' && dv!=='--' && dv!=='—') return true;
+      if(Array.isArray(ls.linescores) && ls.linescores.length>0) return true;
+      return false;
+    };
+    const fieldMaxRounds = comps.reduce((m,c)=>Math.max(m, completedRoundsOf(c)), 0);
+    APP.fieldMaxRounds = fieldMaxRounds;
+
     comps.forEach(c=>{
       const name = c.athlete?.displayName || c.athlete?.fullName || c.athlete?.shortName || 'Unknown';
       const pos = extractPosition(c);
@@ -392,8 +408,18 @@ async function fetchScores(){
       const ps = extractStatus(c);
       const roundsPlayed = rounds.filter(r=>r!==null).length;
 
+      // Use ESPN's status flag if present; otherwise infer a missed cut from rounds.
+      let isCut = ps.isCut, isWD = ps.isWD, isDQ = ps.isDQ;
+      let thru = ps.thru;
+      if(!isCut && !isWD && !isDQ
+         && fieldMaxRounds>=3 && roundsPlayed<=2
+         && !startedRound(c,2) && !startedRound(c,3)){
+        isCut = true;
+        thru = 'MC';
+      }
+      const isOut = isCut||isWD||isDQ;
+
       let sweepScore = scoreToPar;
-      const isOut = ps.isCut||ps.isWD||ps.isDQ;
       if(isOut){
         if(rounds[0]!==null && rounds[1]!==null){
           sweepScore = (rounds[0]+rounds[1] - PAR*2) + 3;
@@ -407,8 +433,8 @@ async function fetchScores(){
       const rec = {
         name, position:pos, scoreToPar, sweepstakeScoreToPar:sweepScore,
         rounds, roundsPlayed,
-        thru: ps.thru,
-        isCut:ps.isCut, isWD:ps.isWD, isDQ:ps.isDQ, isOut,
+        thru,
+        isCut, isWD, isDQ, isOut,
         picked: allPicks.has(normName(name))
       };
       golferData[normName(name)] = rec;
@@ -455,7 +481,7 @@ function resolvePick(pn){
   }
   const snap = APP.golfers && APP.golfers[key];
   if(snap){
-    const pastCut = APP.eventPeriod>=3 || APP.eventFinal;
+    const pastCut = APP.fieldMaxRounds>=3 || APP.eventFinal;
     const flaggedOut = snap.status==='cut'||snap.status==='wd'||snap.status==='dq';
     if(flaggedOut || pastCut){
       const sc = snapshotCutScore(snap);
