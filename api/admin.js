@@ -46,9 +46,14 @@ export default async function handler(req, res) {
 
     switch (body.action) {
       case 'setConfig': {
-        const par = Number(body.par);
-        if (!Number.isFinite(par) || par < 50 || par > 80) {
-          return res.status(400).json({ error: 'INVALID_PAR', detail: 'Par must be a number (e.g. 70, 72).' });
+        // Par is optional: it's auto-detected from ESPN for the selected event and
+        // this value is only a manual fallback/override.
+        let par = null;
+        if (body.par !== '' && body.par != null) {
+          par = Number(body.par);
+          if (!Number.isFinite(par) || par < 50 || par > 80) {
+            return res.status(400).json({ error: 'INVALID_PAR', detail: 'Par must be a number (e.g. 70, 72) or left blank for auto.' });
+          }
         }
         const eventName = String(body.eventName || '').trim();
         const eligibleNames = Array.isArray(body.eligibleNames)

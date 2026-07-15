@@ -129,12 +129,12 @@ textarea{min-height:7rem;resize:vertical;line-height:1.5}
         <input type="password" id="adminToken" placeholder="Enter the ADMIN_TOKEN">
       </div>
       <div class="admin-field">
-        <label class="field-label">Event name</label>
-        <input type="text" id="adminEvent" placeholder="e.g. U.S. Open 2026">
+        <label class="field-label">Event name (optional — the current major is auto-detected; only fill in to run a non-major)</label>
+        <input type="text" id="adminEvent" placeholder="auto">
       </div>
       <div class="admin-field">
-        <label class="field-label">Course par</label>
-        <input type="number" id="adminPar" value="70" min="50" max="80">
+        <label class="field-label">Course par (optional — auto-detected from ESPN)</label>
+        <input type="number" id="adminPar" min="50" max="80" placeholder="auto">
       </div>
       <div class="admin-field">
         <label class="field-label">Eligible names (one per line)</label>
@@ -175,6 +175,7 @@ textarea{min-height:7rem;resize:vertical;line-height:1.5}
         <li>If a golfer <strong>misses the cut</strong>, their final score = score-to-par after their two rounds <strong>+ 3 penalty shots</strong>.</li>
         <li>WD (withdrew) and DQ (disqualified) players treated the same as a missed cut.</li>
         <li>Scores update automatically every 2 minutes.</li>
+        <li>The app follows the <strong>four majors</strong> automatically — The Masters, PGA Championship, U.S. Open and The Open — including the right course par.</li>
       </ul>
     </div>
     <button class="debug-toggle" onclick="document.getElementById('debugBox').style.display=document.getElementById('debugBox').style.display==='none'?'block':'none'">Show raw ESPN data (debug)</button>
@@ -351,20 +352,20 @@ async function fetchScores(){
     const data = await res.json();
     lastRawData = data;
 
-    // Use the configured event if its name matches, else the in-focus event.
-    let ev = null;
-    if(data.events && data.events.length){
-      const want = (APP.config?.eventName||'').toLowerCase().trim();
-      if(want) ev = data.events.find(e=>(e.name||'').toLowerCase().includes(want)) || null;
-      ev = ev || data.events[0];
-    }
-    if(!ev) throw new Error('No tournament data.');
+    // The server pre-selects the event (organiser override, else this week's
+    // major), so events[] is either [the one event] or empty (no major on).
+    const meta = data.sweepMeta || {};
+    const ev = (data.events && data.events[0]) || null;
+    if(!ev){ renderNoMajor(meta); return; }
+
+    // Par comes from ESPN for the selected course; config.par is just a fallback.
+    PAR = Number(meta.par) || Number(APP.config?.par) || 70;
 
     const evSt = ev.status?.type || {};
     const roundDisplay = evSt.detail||evSt.shortDetail||evSt.description||'In Progress';
     document.getElementById('roundInfo').textContent = roundDisplay;
     document.getElementById('roundInfo2').textContent = roundDisplay;
-    document.getElementById('statusText').textContent = APP.config?.eventName || ev.name || roundDisplay;
+    document.getElementById('statusText').textContent = ev.name || APP.config?.eventName || roundDisplay;
 
     const state = (evSt.state||'').toLowerCase();
     document.getElementById('liveDot').style.display = (state==='in'||state==='pre')?'inline-block':'none';
@@ -458,6 +459,24 @@ async function fetchScores(){
     document.getElementById('sweepBoard').innerHTML = '<div class="error-msg">Could not load scores. Will retry in 2 min.<br><small>'+err.message+'</small></div>';
     updateDebug();
   }
+}
+
+// Shown between majors: the scoreboard has no major and no configured override,
+// so there's nothing to track until the next one arrives.
+function renderNoMajor(meta){
+  document.getElementById('statusText').textContent = 'Waiting for the next major';
+  document.getElementById('liveDot').style.display = 'none';
+  document.getElementById('roundInfo').textContent = 'No major this week';
+  document.getElementById('roundInfo2').textContent = 'No major this week';
+  const others = (meta.allEvents||[]).map(e=>e.name).filter(Boolean);
+  const msg = '<div class="panel-msg">No major championship is on this week — the sweepstake wakes up automatically for the next one (The Masters, PGA Championship, U.S. Open, The Open).'
+    + (others.length ? '<br><small>On tour this week: '+others.map(esc).join(', ')+'</small>' : '')
+    + '</div>';
+  document.getElementById('sweepBoard').innerHTML = msg;
+  document.getElementById('golferBoard').innerHTML = msg;
+  document.getElementById('lastUpdated').textContent = 'Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  FIELD = [];
+  updateDebug();
 }
 
 function snapshotCutScore(snap){
@@ -582,7 +601,7 @@ function updateDebug(){
       sortOrder:c.sortOrder,
       statistics:c.statistics?.slice?.(0,5)
     }));
-    box.textContent='Event: '+(ev?.name||'?')+'\nStatus: '+JSON.stringify(ev?.status?.type)+'\nPlayers: '+cs.length+'\n\nSample (first 3):\n'+JSON.stringify(sample,null,2);
+    box.textContent='Event: '+(ev?.name||'?')+'\nMeta: '+JSON.stringify(lastRawData.sweepMeta||null)+'\nPAR in use: '+PAR+'\nStatus: '+JSON.stringify(ev?.status?.type)+'\nPlayers: '+cs.length+'\n\nSample (first 3):\n'+JSON.stringify(sample,null,2);
   }catch(e){box.textContent='Debug error: '+e.message;}
 }
 
@@ -782,7 +801,7 @@ function initAdmin(){
   document.getElementById('adminTab').style.display='';
   if(APP.config){
     document.getElementById('adminEvent').value = APP.config.eventName||'';
-    document.getElementById('adminPar').value = APP.config.par||70;
+    document.getElementById('adminPar').value = APP.config.par ?? '';
     document.getElementById('adminNames').value = (APP.config.eligibleNames||[]).join('\n');
   }
   refreshAdminResetNames();
@@ -790,7 +809,8 @@ function initAdmin(){
   document.getElementById('adminSaveBtn').addEventListener('click', async ()=>{
     const msg=document.getElementById('adminMsg');
     const names = document.getElementById('adminNames').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    const r = await adminPost({ action:'setConfig', token:tok(), eventName:document.getElementById('adminEvent').value, par:Number(document.getElementById('adminPar').value), eligibleNames:names });
+    const parVal = document.getElementById('adminPar').value.trim();
+    const r = await adminPost({ action:'setConfig', token:tok(), eventName:document.getElementById('adminEvent').value, par: parVal===''?null:Number(parVal), eligibleNames:names });
     showAdminMsg(msg, r);
     if(r.ok){ await loadState(); refreshAdminResetNames(); }
   });

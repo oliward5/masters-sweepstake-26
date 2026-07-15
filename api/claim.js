@@ -42,17 +42,61 @@ async function readJson(req) {
   try { return JSON.parse(raw || '{}'); } catch { return {}; }
 }
 
-// The event field = competitors of the configured event (or the in-focus one),
-// matching how index.html selects the event.
+// --- Event selection (kept in sync with api/scores.js) ---
+// The scoreboard feed can hold several concurrent events (majors run alongside an
+// opposite-field tour event): pick the configured event if its name matches, else
+// this week's MAJOR via ESPN's tournament.major flag (name-pattern fallback).
+const MAJOR_NAME_RE = /masters tournament|pga championship|u\.?s\.? ?open|open championship|\bthe open\b/i;
+const NOT_MAJOR_RE = /senior|women|ladies|amateur|junior/i;
+function looksLikeMajor(name) {
+  const n = String(name || '');
+  return MAJOR_NAME_RE.test(n) && !NOT_MAJOR_RE.test(n);
+}
+
+export async function fetchEventMeta(eventId) {
+  try {
+    const r = await fetch(
+      'https://site.web.api.espn.com/apis/site/v2/sports/golf/leaderboard?league=pga&event=' +
+      encodeURIComponent(eventId)
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const ev = j && j.events && j.events[0];
+    if (!ev) return null;
+    const par = Number(ev.courses?.[0]?.shotsToPar);
+    return {
+      major: !!ev.tournament?.major,
+      par: (Number.isFinite(par) && par >= 50 && par <= 80) ? par : null,
+      course: ev.courses?.[0]?.name || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function selectEvent(events, configEventName) {
+  const list = Array.isArray(events) ? events : [];
+  if (!list.length) return { event: null, meta: null };
+  const want = String(configEventName || '').toLowerCase().trim();
+  if (want) {
+    const m = list.find(e => (e.name || '').toLowerCase().includes(want));
+    if (m) return { event: m, meta: await fetchEventMeta(m.id) };
+  }
+  const metas = await Promise.all(list.map(e => fetchEventMeta(e.id)));
+  for (let i = 0; i < list.length; i++) {
+    if (metas[i] && metas[i].major) return { event: list[i], meta: metas[i] };
+  }
+  for (let i = 0; i < list.length; i++) {
+    if (!metas[i] && looksLikeMajor(list[i].name)) return { event: list[i], meta: null };
+  }
+  return { event: null, meta: null };
+}
+
+// The event field = competitors of the selected event.
 async function fetchField(wantName) {
   const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard');
   const data = await res.json();
-  let ev = null;
-  if (data.events && data.events.length) {
-    const want = String(wantName || '').toLowerCase().trim();
-    if (want) ev = data.events.find(e => (e.name || '').toLowerCase().includes(want)) || null;
-    ev = ev || data.events[0];
-  }
+  const { event: ev } = await selectEvent(data.events, wantName);
   const comps = ev?.competitions?.[0]?.competitors || ev?.competitors || [];
   const byNorm = new Map();
   comps.forEach(c => {

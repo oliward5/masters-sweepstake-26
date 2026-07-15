@@ -5,6 +5,12 @@ under the tier rules, and submit once (then their entry locks). The leaderboard 
 itself from everyone's picks plus live scores. Deployed on Vercel.
 
 ## How it works
+- **The app follows the four majors automatically.** ESPN's feed can list several
+  concurrent events (each major runs alongside an opposite-field tour event), so the
+  server picks the one flagged `tournament.major` by ESPN — and reads the **course
+  par** from the same API. Between majors the app shows a "waiting for the next
+  major" notice. To run a non-major instead, set its name in `/#admin` (a configured
+  event name that matches an event in the feed overrides major-detection).
 - **Pick tiers come from the live world ranking (OWGR):** 1 golfer from world rank
   1–5, 2 from 6–25, and 1 from 26+.
 - **You can only pick players in this week's field** (from ESPN).
@@ -20,6 +26,8 @@ itself from everyone's picks plus live scores. Deployed on Vercel.
 
 ## Data sources
 - **Scores / field:** ESPN public scoreboard API (free, no key) via `api/scores.js`.
+- **Major flag / course par:** ESPN public leaderboard API (`tournament.major`,
+  `courses[0].shotsToPar`), fetched per event by `api/scores.js` and `api/claim.js`.
 - **World ranking / tiers:** OWGR public API via `api/rankings.js`.
 
 ESPN deletes missed-cut players from its feed once a tournament finalises, so
@@ -42,8 +50,9 @@ at least one capture happens each day even if nobody's watching.
    - `UPSTASH_REDIS_REST_TOKEN`
    - `ADMIN_TOKEN` – a secret you choose, used to open the organiser screen.
 3. **Redeploy** (env-var changes need a fresh deployment).
-4. Open **`/#admin`**, enter your `ADMIN_TOKEN`, set the event name + course par,
-   paste the eligible names (one per line), and **Save**. No golfer list to enter —
+4. Open **`/#admin`**, enter your `ADMIN_TOKEN`, paste the eligible names (one per
+   line), and **Save**. Event name and course par are **auto-detected** (only fill
+   them in to run a non-major or override the par). No golfer list to enter —
    it's pulled live from OWGR and the field.
 5. Share the URL. Everyone goes to **My Pick** to claim a name and submit.
 
@@ -61,7 +70,9 @@ the sweepstake can't be saved.
 
 ## Organiser tasks
 - **Reset one entry** (someone wants to re-pick): `/#admin` → Reset entries → pick name → Remove.
-- **Start a new tournament:** `/#admin` → Reset ALL (clears entries and the score snapshot),
-  then update the event name + par.
+- **Start a new tournament:** `/#admin` → Reset ALL (clears entries and the score
+  snapshot). That's it — the next major, its field, and its course par are picked up
+  automatically. (The score snapshot also self-clears if it ever sees a new event id,
+  so a forgotten reset can't leak scores across tournaments.)
 
 No build step, no `package.json` — every `api/*.js` file is a standalone Vercel function.

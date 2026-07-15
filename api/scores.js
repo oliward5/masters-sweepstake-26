@@ -1,6 +1,14 @@
 // This file runs on Vercel's servers (not in the browser).
-// It fetches the Masters/PGA leaderboard from ESPN's public API and passes it back
+// It fetches the golf leaderboard from ESPN's public API and passes it back
 // to the webpage, avoiding browser security restrictions.
+//
+// EVENT SELECTION: the scoreboard feed can hold several concurrent events (each
+// major runs alongside an opposite-field tour event), so we pick ONE and return it
+// alone in events[]: the organiser's configured event name if it matches, otherwise
+// this week's MAJOR — via ESPN's own tournament.major flag, with a name-pattern
+// fallback if that API is down. No major and no override => events[] is empty and
+// the front-end shows a "waiting for the next major" notice. This is what makes the
+// app self-configuring for all four majors. Kept in sync with api/claim.js.
 //
 // It ALSO snapshots each golfer's round scores into Redis on a throttle. This is the
 // fix for the missed-cut rule: once a tournament finalises, ESPN deletes cut players
@@ -27,6 +35,64 @@ async function redis(cmd) {
   const j = await r.json();
   if (j.error) throw new Error(j.error);
   return j.result;
+}
+
+// --- Event selection (kept in sync with api/claim.js) ---
+const MAJOR_NAME_RE = /masters tournament|pga championship|u\.?s\.? ?open|open championship|\bthe open\b/i;
+const NOT_MAJOR_RE = /senior|women|ladies|amateur|junior/i;
+function looksLikeMajor(name) {
+  const n = String(name || '');
+  return MAJOR_NAME_RE.test(n) && !NOT_MAJOR_RE.test(n);
+}
+
+// Course par and ESPN's authoritative "major" flag live in the leaderboard API,
+// not in the scoreboard feed.
+export async function fetchEventMeta(eventId) {
+  try {
+    const r = await fetch(
+      'https://site.web.api.espn.com/apis/site/v2/sports/golf/leaderboard?league=pga&event=' +
+      encodeURIComponent(eventId)
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const ev = j && j.events && j.events[0];
+    if (!ev) return null;
+    const par = Number(ev.courses?.[0]?.shotsToPar);
+    return {
+      major: !!ev.tournament?.major,
+      par: (Number.isFinite(par) && par >= 50 && par <= 80) ? par : null,
+      course: ev.courses?.[0]?.name || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Returns { event, meta } — meta is null when the leaderboard API was unreachable.
+export async function selectEvent(events, configEventName) {
+  const list = Array.isArray(events) ? events : [];
+  if (!list.length) return { event: null, meta: null };
+
+  // 1. Organiser override: a configured event name that matches an event in the
+  //    feed wins — this is how the app can run for a non-major if ever wanted.
+  const want = String(configEventName || '').toLowerCase().trim();
+  if (want) {
+    const m = list.find(e => (e.name || '').toLowerCase().includes(want));
+    if (m) return { event: m, meta: await fetchEventMeta(m.id) };
+  }
+
+  // 2. This week's major, per ESPN's tournament.major flag.
+  const metas = await Promise.all(list.map(e => fetchEventMeta(e.id)));
+  for (let i = 0; i < list.length; i++) {
+    if (metas[i] && metas[i].major) return { event: list[i], meta: metas[i] };
+  }
+
+  // 3. Name heuristic, only for events whose meta lookup failed.
+  for (let i = 0; i < list.length; i++) {
+    if (!metas[i] && looksLikeMajor(list[i].name)) return { event: list[i], meta: null };
+  }
+
+  return { event: null, meta: null };
 }
 
 // --- ESPN parsing helpers (kept in sync with index.html) ---
@@ -91,21 +157,24 @@ function extractStatusFlag(c) {
   return 'active';
 }
 
-async function maybeSnapshot(data) {
-  if (!redisConfigured()) return;
+async function maybeSnapshot(ev) {
+  if (!redisConfigured() || !ev) return;
   // Cheap throttle check first so the common path is one tiny GET.
   const tsRaw = await redis(['GET', 'sweep:snap_ts']);
   const lastTs = tsRaw ? Number(tsRaw) : 0;
   const now = Date.now();
   if (now - lastTs < SNAPSHOT_THROTTLE_MS) return;
 
-  const ev = (data.events && data.events[0]) || null;
   const comps = ev?.competitions?.[0]?.competitors || ev?.competitors || [];
   if (comps.length === 0) return;
 
   let doc = { players: {} };
   const cur = await redis(['GET', 'sweep:golfers']);
   if (cur) { try { const p = JSON.parse(cur); if (p && p.players) doc = p; } catch { /* ignore */ } }
+
+  // New tournament? Start a fresh snapshot so scores never bleed across events.
+  const evId = String(ev.id || '');
+  if (doc._eventId && evId && doc._eventId !== evId) doc = { players: {} };
 
   comps.forEach(c => {
     const name = c.athlete?.displayName || c.athlete?.fullName || c.athlete?.shortName;
@@ -131,6 +200,7 @@ async function maybeSnapshot(data) {
   });
 
   doc._ts = now;
+  doc._eventId = evId;
   doc._eventState = (ev.status?.type?.state || '').toLowerCase();
   doc._period = ev.status?.period || 0;
   await redis(['SET', 'sweep:golfers', JSON.stringify(doc)]);
@@ -149,10 +219,33 @@ export default async function handler(req, res) {
     );
     const data = await response.json();
 
-    // Snapshot round scores to Redis (throttled, fault-tolerant — never block scores).
-    try { await maybeSnapshot(data); } catch (e) { /* snapshot is best-effort */ }
+    // Organiser's event-name override, if one is configured (best-effort — the
+    // majors need no config at all).
+    let cfgName = '';
+    if (redisConfigured()) {
+      try {
+        const c = JSON.parse(await redis(['GET', 'sweep:config']));
+        if (c && c.eventName) cfgName = c.eventName;
+      } catch { /* no config yet */ }
+    }
 
-    res.status(200).json(data);
+    const { event: ev, meta } = await selectEvent(data.events, cfgName);
+
+    // Snapshot round scores to Redis (throttled, fault-tolerant — never block scores).
+    try { await maybeSnapshot(ev); } catch (e) { /* snapshot is best-effort */ }
+
+    res.status(200).json({
+      ...data,
+      events: ev ? [ev] : [],
+      sweepMeta: {
+        eventId: ev ? String(ev.id) : null,
+        eventName: ev ? (ev.name || null) : null,
+        par: meta ? meta.par : null,
+        course: meta ? meta.course : null,
+        major: meta ? meta.major : null,
+        allEvents: (data.events || []).map(e => ({ id: String(e.id), name: e.name })),
+      },
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch scores' });
   }
